@@ -205,38 +205,6 @@
         /* ── FOOTER SEPARATOR ── */
         .footer-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(0,243,255,0.2),transparent); }
         body:not(.dark) .footer-sep { background:linear-gradient(90deg,transparent,rgba(14,165,233,0.2),transparent); }
-
-        /* ── CURRENTLY BUILDING WIDGET ── */
-        #vibe-status {
-            position: fixed; bottom: 22px; right: 22px; z-index: 50;
-            font-family: 'JetBrains Mono', monospace;
-            background: rgba(13,18,30,0.88);
-            border: 1px solid rgba(0,243,255,0.18);
-            border-radius: 14px;
-            padding: 10px 15px;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 0 28px rgba(0,243,255,0.08), 0 8px 32px rgba(0,0,0,0.5);
-            min-width: 210px;
-            transform: translateY(80px);
-            opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease;
-        }
-        body:not(.dark) #vibe-status {
-            background: rgba(255,255,255,0.92);
-            border-color: rgba(14,165,233,0.22);
-            box-shadow: 0 0 24px rgba(14,165,233,0.08), 0 8px 24px rgba(0,0,0,0.12);
-        }
-        #vibe-status.show { transform: translateY(0); opacity: 1; }
-        #vibe-status .vs-label { font-size: 9px; letter-spacing: 2px; color: #4b5563; text-transform: uppercase; margin-bottom: 6px; }
-        body:not(.dark) #vibe-status .vs-label { color: #9ca3af; }
-        #vibe-status .vs-stack { font-size: 10px; color: #00f3ff; display: flex; align-items: center; gap: 7px; }
-        body:not(.dark) #vibe-status .vs-stack { color: #0284c7; }
-        #vibe-status .vs-project { font-size: 11px; color: #e6edf3; font-weight: 700; margin-bottom: 2px; }
-        body:not(.dark) #vibe-status .vs-project { color: #1e293b; }
-        .vs-pip { width: 5px; height: 5px; border-radius: 50%; background: #00f3ff; animation: pulse 2s infinite; flex-shrink: 0; }
-        body:not(.dark) .vs-pip { background: #0284c7; }
-        #vibe-close { position: absolute; top: 8px; right: 10px; font-size: 10px; color: #4b5563; cursor: pointer; transition: color 0.2s; line-height: 1; }
-        #vibe-close:hover { color: #00f3ff; }
     </style>
 </head>
 
@@ -244,14 +212,6 @@
 
     <!-- Scroll Progress -->
     <div id="scroll-bar"></div>
-
-    <!-- Currently Building Widget -->
-    <div id="vibe-status">
-        <span id="vibe-close" onclick="document.getElementById('vibe-status').style.display='none'">✕</span>
-        <div class="vs-label">// currently_building</div>
-        <div class="vs-project">ZxcV AI - RFN</div>
-        <div class="vs-stack"><span class="vs-pip"></span>Telegraf v4 &nbsp;·&nbsp; Gemini API</div>
-    </div>
 
     <!-- Custom Cursor (desktop only) -->
     <div id="cursor-dot" class="hidden lg:block"></div>
