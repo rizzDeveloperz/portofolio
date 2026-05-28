@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rizqi Fadhillah Nursalim | Portofolio</title>
+    <title>Rizqi Fadhillah Nursalim | Vibe Coder</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'><path fill='%2300f3ff' d='M392.8 1.2c-17-4.9-34.7 5-39.6 22l-128 448c-4.9 17 5 34.7 22 39.6s34.7-5 39.6-22l128-448c4.9-17-5-34.7-22-39.6zm80.6 120.1c-12.5 12.5-12.5 32.8 0 45.3L562.7 256l-89.4 89.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l112-112c12.5-12.5 12.5-32.8 0-45.3l-112-112c-12.5-12.5-32.8-12.5-45.3 0zm-306.7 0c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3l112 112c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256l89.4-89.4c12.5-12.5 12.5-32.8 0-45.3z'/></svg>" type="image/svg+xml">
 
@@ -205,6 +205,38 @@
         /* ── FOOTER SEPARATOR ── */
         .footer-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(0,243,255,0.2),transparent); }
         body:not(.dark) .footer-sep { background:linear-gradient(90deg,transparent,rgba(14,165,233,0.2),transparent); }
+
+        /* ── CURRENTLY BUILDING WIDGET ── */
+        #vibe-status {
+            position: fixed; bottom: 22px; right: 22px; z-index: 50;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(13,18,30,0.88);
+            border: 1px solid rgba(0,243,255,0.18);
+            border-radius: 14px;
+            padding: 10px 15px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 0 28px rgba(0,243,255,0.08), 0 8px 32px rgba(0,0,0,0.5);
+            min-width: 210px;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease;
+        }
+        body:not(.dark) #vibe-status {
+            background: rgba(255,255,255,0.92);
+            border-color: rgba(14,165,233,0.22);
+            box-shadow: 0 0 24px rgba(14,165,233,0.08), 0 8px 24px rgba(0,0,0,0.12);
+        }
+        #vibe-status.show { transform: translateY(0); opacity: 1; }
+        #vibe-status .vs-label { font-size: 9px; letter-spacing: 2px; color: #4b5563; text-transform: uppercase; margin-bottom: 6px; }
+        body:not(.dark) #vibe-status .vs-label { color: #9ca3af; }
+        #vibe-status .vs-stack { font-size: 10px; color: #00f3ff; display: flex; align-items: center; gap: 7px; }
+        body:not(.dark) #vibe-status .vs-stack { color: #0284c7; }
+        #vibe-status .vs-project { font-size: 11px; color: #e6edf3; font-weight: 700; margin-bottom: 2px; }
+        body:not(.dark) #vibe-status .vs-project { color: #1e293b; }
+        .vs-pip { width: 5px; height: 5px; border-radius: 50%; background: #00f3ff; animation: pulse 2s infinite; flex-shrink: 0; }
+        body:not(.dark) .vs-pip { background: #0284c7; }
+        #vibe-close { position: absolute; top: 8px; right: 10px; font-size: 10px; color: #4b5563; cursor: pointer; transition: color 0.2s; line-height: 1; }
+        #vibe-close:hover { color: #00f3ff; }
     </style>
 </head>
 
@@ -212,6 +244,14 @@
 
     <!-- Scroll Progress -->
     <div id="scroll-bar"></div>
+
+    <!-- Currently Building Widget -->
+    <div id="vibe-status">
+        <span id="vibe-close" onclick="document.getElementById('vibe-status').style.display='none'">✕</span>
+        <div class="vs-label">// currently_building</div>
+        <div class="vs-project">ZxcV AI - RFN</div>
+        <div class="vs-stack"><span class="vs-pip"></span>Telegraf v4 &nbsp;·&nbsp; Gemini API</div>
+    </div>
 
     <!-- Custom Cursor (desktop only) -->
     <div id="cursor-dot" class="hidden lg:block"></div>
@@ -489,6 +529,8 @@
                         <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Express</span>
                         <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Cron</span>
                         <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Rate Limiting</span>
+                        <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Telegraf v4</span>
+                        <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini API</span>
                     </div>
                 </div>
 
@@ -546,6 +588,59 @@
                             </div>
                             <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="port4_desc">Bot WhatsApp manajemen hutang & piutang berbasis Node.js dengan fitur rate limiting, auto-backup harian, dashboard ASCII + leaderboard, timezone WIB, dan sistem multi-command yang canggih.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: ZxcV AI - RFN Telegram Bot -->
+                <div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group" style="transition-delay:.1s">
+                    <div class="spotlight"></div>
+                    <div class="h-36 bg-gradient-to-br from-blue-500/10 to-cyan-500/8 flex items-center justify-center border-b border-gray-200/60 dark:border-white/5 relative overflow-hidden">
+                        <i class="fab fa-telegram-plane text-5xl text-blue-400/40 group-hover:text-blue-400/70 group-hover:scale-110 transition-all duration-500"></i>
+                        <div class="absolute top-3 left-3">
+                            <span class="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-400/10 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-400/20">🤖 AI Bot</span>
+                        </div>
+                        <div class="absolute top-3 right-3">
+                            <span class="live-badge" style="font-size:9px;padding:3px 9px;">
+                                <span class="live-dot"></span>Active
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex flex-wrap gap-1.5 mb-3">
+                            <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Node.js</span>
+                            <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Telegraf v4</span>
+                            <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini API</span>
+                            <span class="pill text-fuchsia-600 dark:text-fuchsia-400 border-fuchsia-400/30 bg-fuchsia-400/5">RBAC</span>
+                        </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white group-hover:text-blue-400 dark:group-hover:text-blue-400 transition-colors" data-i18n="port5_title">ZxcV AI - RFN</h3>
+                            <a href="https://github.com/rizzDeveloperz" target="_blank" class="text-gray-400 dark:text-gray-600 hover:text-blue-400 transition-colors text-sm ml-3 flex-shrink-0"><i class="fab fa-github text-lg"></i></a>
+                        </div>
+                        <p class="text-gray-500 dark:text-gray-500 text-xs leading-relaxed" data-i18n="port5_desc">Bot Telegram AI multi-fitur dengan Gemini API, identity-locked responses, role-based access control, rate limiting, inline keyboards, dan 6 tools terintegrasi — TikTok/IG DL, Spotify, FF & IG stalk.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Vibe Portfolio -->
+                <div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group" style="transition-delay:.2s">
+                    <div class="spotlight"></div>
+                    <div class="h-36 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/8 flex items-center justify-center border-b border-gray-200/60 dark:border-white/5 relative overflow-hidden">
+                        <i class="fas fa-wand-magic-sparkles text-5xl text-violet-400/40 group-hover:text-violet-400/70 group-hover:scale-110 transition-all duration-500"></i>
+                        <div class="absolute top-3 left-3">
+                            <span class="text-xs font-mono text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-400/10 px-2 py-0.5 rounded-md border border-violet-200 dark:border-violet-400/20">✨ Vibe</span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex flex-wrap gap-1.5 mb-3">
+                            <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">HTML5</span>
+                            <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">GSAP</span>
+                            <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Tailwind</span>
+                            <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">i18n</span>
+                        </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white group-hover:text-violet-400 dark:group-hover:text-violet-400 transition-colors" data-i18n="port6_title">Portfolio v2 — RFN</h3>
+                            <a href="https://github.com/rizzDeveloperz" target="_blank" class="text-gray-400 dark:text-gray-600 hover:text-violet-400 transition-colors text-sm ml-3 flex-shrink-0"><i class="fab fa-github text-lg"></i></a>
+                        </div>
+                        <p class="text-gray-500 dark:text-gray-500 text-xs leading-relaxed" data-i18n="port6_desc">Portofolio ini! Single-file dengan neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, dan Brittany Chiang-style sidebars.</p>
                     </div>
                 </div>
 
@@ -669,6 +764,8 @@
             port2_title:"Telegram Bot Automasi", port2_desc:"Bot cerdas untuk mengelola grup Telegram dan memberikan notifikasi otomatis.",
             port3_title:"Dashboard Analitik", port3_desc:"Dashboard interaktif yang menampilkan data real-time dengan grafik yang indah.",
             port4_title:"RFN × Indokuota Debt Bot", port4_desc:"Bot WhatsApp manajemen hutang & piutang berbasis Node.js dengan fitur rate limiting, auto-backup harian, dashboard ASCII + leaderboard, timezone WIB, dan sistem multi-command yang canggih.",
+            port5_title:"ZxcV AI - RFN", port5_desc:"Bot Telegram AI multi-fitur dengan Gemini API, identity-locked responses, role-based access control, rate limiting, inline keyboards, dan 6 tools terintegrasi — TikTok/IG DL, Spotify, FF & IG stalk.",
+            port6_title:"Portfolio v2 — RFN", port6_desc:"Portofolio ini! Single-file dengan neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, dan Brittany Chiang-style sidebars.",
             contact_num:"04. contact()", contact_title:"Hubungi Saya", contact_sub:"Ada proyek seru? Let's collab dan build sesuatu yang keren!",
             footer_made:'Dibuat dengan <i class="fas fa-heart text-cyan-500 dark:text-neon mx-1"></i> &amp; <i class="fas fa-coffee text-amber-500 mx-1"></i> oleh <span class="text-gray-700 dark:text-gray-400 font-bold">Rizqi Fadhillah Nursalim</span>',
             footer_rights:"© 2026 Hak Cipta Dilindungi.",
@@ -691,6 +788,8 @@
             port2_title:"Telegram Automation Bot", port2_desc:"Smart bot for managing Telegram groups and providing automated notifications.",
             port3_title:"Analytics Dashboard", port3_desc:"Interactive dashboard displaying real-time data with beautiful charts.",
             port4_title:"RFN × Indokuota Debt Bot", port4_desc:"WhatsApp debt & receivables management bot built with Node.js — featuring rate limiting, daily auto-backup, ASCII dashboard + leaderboard, WIB timezone, and powerful multi-commands.",
+            port5_title:"ZxcV AI - RFN", port5_desc:"Multi-feature Telegram AI bot powered by Gemini API — identity-locked responses, role-based access control, rate limiting, inline keyboards, and 6 integrated tools: TikTok/IG DL, Spotify, FF & IG stalk.",
+            port6_title:"Portfolio v2 — RFN", port6_desc:"This portfolio! Single-file with neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, and Brittany Chiang-style sidebars.",
             contact_num:"04. contact()", contact_title:"Contact Me", contact_sub:"Have a cool project? Let's collab and build something awesome!",
             footer_made:'Made with <i class="fas fa-heart text-cyan-500 dark:text-neon mx-1"></i> &amp; <i class="fas fa-coffee text-amber-500 mx-1"></i> by <span class="text-gray-700 dark:text-gray-400 font-bold">Rizqi Fadhillah Nursalim</span>',
             footer_rights:"© 2026 All Rights Reserved.",
@@ -791,6 +890,12 @@
     }
     drawRain();
 
+    // ── CURRENTLY BUILDING WIDGET ──
+    setTimeout(() => {
+        const vs = document.getElementById('vibe-status');
+        if (vs) vs.classList.add('show');
+    }, 2200);
+
     // ── TYPEWRITER ──
     let twI = 0, twIdx = 0, twDel = false;
     function type() {
@@ -814,7 +919,7 @@
         { t:'c', v:'cat philosophy.txt' },
         { t:'o', v:'"Vibe Coding — code that feels alive."' },
         { t:'c', v:'ls ./projects/' },
-        { t:'o', v:'debt-bot/  landing-page/  dashboard/' },
+        { t:'o', v:'debt-bot/  telegram-bot/  portfolio-v2/' },
         { t:'c', v:'node --version && python3 --version' },
         { t:'o', v:'v20.14.0 | Python 3.11.4' },
         { t:'c', v:'git log --oneline -1' },
