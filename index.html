@@ -8,8 +8,10 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'><path fill='%2300f3ff' d='M392.8 1.2c-17-4.9-34.7 5-39.6 22l-128 448c-4.9 17 5 34.7 22 39.6s34.7-5 39.6-22l128-448c4.9-17-5-34.7-22-39.6zm80.6 120.1c-12.5 12.5-12.5 32.8 0 45.3L562.7 256l-89.4 89.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l112-112c12.5-12.5 12.5-32.8 0-45.3l-112-112c-12.5-12.5-32.8-12.5-45.3 0zm-306.7 0c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3l112 112c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256l89.4-89.4c12.5-12.5 12.5-32.8 0-45.3z'/></svg>" type="image/svg+xml">
 
     <script>
-        if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
-        else document.documentElement.classList.add('dark');
+        try {
+            if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+            else document.documentElement.classList.add('dark');
+        } catch { document.documentElement.classList.add('dark'); }
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,17 +21,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
     <script>
+        window.tailwind = window.tailwind || {};
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Poppins', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-                    colors: {
-                        neon: '#00f3ff',
-                        darkBg: '#080c14',
-                        glassBg: 'rgba(255,255,255,0.03)',
-                        glassBorder: 'rgba(255,255,255,0.07)'
-                    }
+                    colors: { neon: '#00f3ff', darkBg: '#080c14', glassBg: 'rgba(255,255,255,0.03)', glassBorder: 'rgba(255,255,255,0.07)' }
                 }
             }
         }
@@ -38,22 +36,50 @@
     <style>
         :root { --neon: #00f3ff; --neon-light: #0ea5e9; }
 
-        /* Hide default cursor on desktop */
         @media (min-width: 1024px) { * { cursor: none !important; } input, textarea { cursor: text !important; } a, button { cursor: pointer !important; } }
 
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; scrollbar-width: none; }
+        html::-webkit-scrollbar { display: none; }
         body { overflow-x: hidden; transition: background-color 0.5s ease, color 0.5s ease; }
 
-        /* ── SCROLL PROGRESS ── */
+        /* ── PAGE LOADER ───────────────────────────────────────── */
+        #page-loader {
+            position: fixed; inset: 0; z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #080c14;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        html:not(.dark) #page-loader { background: #f9fafb; }
+        #page-loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-logo {
+            font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 700;
+            color: #00f3ff; text-shadow: 0 0 20px rgba(0,243,255,0.6);
+            margin-bottom: 28px;
+            animation: loader-pulse 1.2s ease-in-out infinite alternate;
+        }
+        html:not(.dark) .loader-logo { color: #0ea5e9; text-shadow: 0 0 16px rgba(14,165,233,0.4); }
+        @keyframes loader-pulse { from { opacity: 0.7; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        .loader-track { width: 160px; height: 2px; background: rgba(255,255,255,0.08); border-radius: 9px; overflow: hidden; }
+        html:not(.dark) .loader-track { background: rgba(0,0,0,0.08); }
+        .loader-fill {
+            height: 100%; width: 0%; border-radius: 9px;
+            background: linear-gradient(90deg, #00f3ff, #8b5cf6);
+            animation: loader-bar 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        html:not(.dark) .loader-fill { background: linear-gradient(90deg, #0ea5e9, #7c3aed); }
+        @keyframes loader-bar { 0%{width:0%} 60%{width:75%} 100%{width:100%} }
+        .loader-pct { margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: #4b5563; }
+
+        /* ── SCROLL PROGRESS ───────────────────────────────────── */
         #scroll-bar {
             position: fixed; top: 0; left: 0; height: 2px; width: 0;
             background: linear-gradient(90deg, #00f3ff 0%, #8b5cf6 100%);
             box-shadow: 0 0 10px rgba(0,243,255,0.7);
             z-index: 9999; transition: width 0.05s linear;
         }
-        body:not(.dark) #scroll-bar { background: linear-gradient(90deg, #0ea5e9 0%, #7c3aed 100%); }
+        html:not(.dark) #scroll-bar { background: linear-gradient(90deg, #0ea5e9 0%, #7c3aed 100%); }
 
-        /* ── CUSTOM CURSOR ── */
+        /* ── CURSOR ────────────────────────────────────────────── */
         #cursor-dot {
             position: fixed; width: 6px; height: 6px; background: var(--neon); border-radius: 50%;
             pointer-events: none; z-index: 9998; transform: translate(-50%,-50%);
@@ -65,12 +91,12 @@
             pointer-events: none; z-index: 9997; transform: translate(-50%,-50%);
             transition: width 0.25s ease, height 0.25s ease, border-color 0.25s ease;
         }
-        body:not(.dark) #cursor-dot { background: var(--neon-light); box-shadow: 0 0 10px var(--neon-light); }
-        body:not(.dark) #cursor-ring { border-color: rgba(14,165,233,0.4); }
+        html:not(.dark) #cursor-dot { background: var(--neon-light); box-shadow: 0 0 10px var(--neon-light); }
+        html:not(.dark) #cursor-ring { border-color: rgba(14,165,233,0.4); }
         .cursor-hover #cursor-ring { width: 58px; height: 58px; border-color: rgba(0,243,255,0.2); }
         .cursor-hover #cursor-dot { transform: translate(-50%,-50%) scale(1.5); }
 
-        /* ── GLASS PANELS ── */
+        /* ── GLASS PANELS ──────────────────────────────────────── */
         .glass-panel {
             background: rgba(255,255,255,0.72);
             backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -79,31 +105,30 @@
             transition: all 0.4s cubic-bezier(0.16,1,0.3,1), background-color 0.5s, border-color 0.5s;
         }
         .glass-panel:hover { border-color: rgba(14,165,233,0.45); box-shadow: 0 12px 40px rgba(14,165,233,0.12); }
-        .dark .glass-panel {
-            background: rgba(13,18,30,0.55);
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-        }
+        .dark .glass-panel { background: rgba(13,18,30,0.55); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
         .dark .glass-panel:hover { border-color: rgba(0,243,255,0.22); box-shadow: 0 0 28px rgba(0,243,255,0.1); }
 
-        /* ── SIDEBAR ── */
+        /* ── SIDEBARS ──────────────────────────────────────────── */
         .sidebar { position: fixed; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 40; }
         .sidebar-l { left: 28px; }
         .sidebar-r { right: 28px; }
         .sidebar-line { width: 1px; height: 72px; background: linear-gradient(to bottom, transparent, #0ea5e9); }
         .dark .sidebar-line { background: linear-gradient(to bottom, transparent, #00f3ff); }
-        .sidebar-l a { font-size: 17px; color: #9ca3af; transition: all 0.3s; }
-        .sidebar-l a:hover { color: #0ea5e9; transform: translateY(-4px); }
+        .sidebar-l a { font-size: 17px; color: #9ca3af; transition: all 0.3s; opacity: 0; transform: translateY(14px); }
+        .sidebar-l a.sidebar-loaded { opacity: 1; transform: translateY(0); }
+        .sidebar-l a:hover { color: #0ea5e9; transform: translateY(-4px) !important; }
         .dark .sidebar-l a:hover { color: #00f3ff; }
         .sidebar-email {
             writing-mode: vertical-rl; font-family: 'JetBrains Mono', monospace;
             font-size: 10px; letter-spacing: 2.5px; color: #9ca3af;
             text-decoration: none; transition: all 0.3s;
+            opacity: 0; transform: translateY(14px);
         }
-        .sidebar-email:hover { color: #0ea5e9; transform: translateY(-4px); }
+        .sidebar-email.sidebar-loaded { opacity: 1; transform: translateY(0); }
+        .sidebar-email:hover { color: #0ea5e9; transform: translateY(-4px) !important; }
         .dark .sidebar-email:hover { color: #00f3ff; }
 
-        /* ── NAV ── */
+        /* ── NAV ───────────────────────────────────────────────── */
         .nav-link { position: relative; padding-bottom: 2px; }
         .nav-link::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: #0ea5e9; transition: width 0.3s ease; }
         .dark .nav-link::after { background: #00f3ff; }
@@ -111,42 +136,147 @@
         .nav-link.active { color: #0ea5e9; }
         .dark .nav-link.active { color: #00f3ff; }
 
-        /* ── GLOW TEXT ── */
+        /* ── MOBILE MENU (ANIMATED) ────────────────────────────── */
+        #mobile-menu {
+            display: flex !important;
+            flex-direction: column;
+            position: absolute; width: 100%; left: 0; top: 100%;
+            max-height: 0; overflow: hidden; opacity: 0; pointer-events: none;
+            transition: max-height 0.48s cubic-bezier(0.16,1,0.3,1), opacity 0.32s ease, padding 0.4s ease;
+            background: rgba(255,255,255,0.97); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+            border-top: 1px solid rgba(0,0,0,0.06); box-shadow: 0 24px 64px rgba(0,0,0,0.13);
+            text-align: center;
+        }
+        .dark #mobile-menu { background: rgba(8,12,20,0.97); border-top-color: rgba(255,255,255,0.05); box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+        #mobile-menu.open { max-height: 480px; opacity: 1; pointer-events: all; padding: 28px 0; }
+        #mobile-menu a { color: #374151; transition: all 0.3s ease; opacity: 0; transform: translateY(-10px); }
+        .dark #mobile-menu a { color: #d1d5db; }
+        #mobile-menu a.link-show { opacity: 1; transform: translateY(0); }
+        #mobile-menu a:hover { color: #0ea5e9; }
+        .dark #mobile-menu a:hover { color: #00f3ff; }
+        /* Mobile social links in menu */
+        #mobile-menu .menu-socials { display: flex; justify-content: center; gap: 20px; padding-top: 8px; }
+        #mobile-menu .menu-socials a { font-size: 18px; opacity: 0; transform: translateY(-10px); }
+
+        @media (min-width: 768px) { #mobile-menu { display: none !important; } }
+
+        /* ── HAMBURGER MORPH ───────────────────────────────────── */
+        .ham-bar {
+            display: block; width: 22px; height: 2px;
+            background: currentColor; border-radius: 2px;
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease, width 0.3s ease;
+            transform-origin: center;
+        }
+        #mobile-menu-btn.open .ham-bar:nth-child(1) { transform: rotate(45deg) translate(0, 7px); }
+        #mobile-menu-btn.open .ham-bar:nth-child(2) { opacity: 0; width: 0; }
+        #mobile-menu-btn.open .ham-bar:nth-child(3) { transform: rotate(-45deg) translate(0, -7px); }
+
+        /* ── RIPPLE EFFECT ─────────────────────────────────────── */
+        .btn-ripple { position: relative; overflow: hidden; }
+        .ripple-wave {
+            position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,0.28);
+            transform: scale(0); animation: ripple-anim 0.55s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+        /* ── GLOW / GRAD TEXT ──────────────────────────────────── */
         .glow-text { color: #0ea5e9; text-shadow: 0 0 12px rgba(14,165,233,0.4), 0 0 24px rgba(14,165,233,0.2); }
         .dark .glow-text { color: #00f3ff; text-shadow: 0 0 14px rgba(0,243,255,0.6), 0 0 28px rgba(0,243,255,0.3); }
-
-        /* ── GRADIENT TEXT ── */
         .grad-text {
             background: linear-gradient(135deg, #00f3ff 0%, #818cf8 60%, #c084fc 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        body:not(.dark) .grad-text {
+        html:not(.dark) .grad-text {
             background: linear-gradient(135deg, #0284c7 0%, #4f46e5 60%, #7c3aed 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
 
-        /* ── TYPEWRITER ── */
+        /* ── HERO EXTRAS ───────────────────────────────────────── */
         .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; color: #0ea5e9; }
         .dark .typing-cursor::after { color: #00f3ff; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* ── LIVE BADGE ── */
         .live-badge {
             display: inline-flex; align-items: center; gap: 7px;
             border-radius: 999px; padding: 5px 14px;
             font-size: 11px; font-family: 'JetBrains Mono', monospace;
             background: rgba(0,243,255,0.07); border: 1px solid rgba(0,243,255,0.2); color: #00f3ff;
         }
-        body:not(.dark) .live-badge { background: rgba(14,165,233,0.07); border-color: rgba(14,165,233,0.25); color: #0284c7; }
+        html:not(.dark) .live-badge { background: rgba(14,165,233,0.07); border-color: rgba(14,165,233,0.25); color: #0284c7; }
         .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #00f3ff; animation: pulse 2s infinite; }
-        body:not(.dark) .live-dot { background: #0284c7; }
+        html:not(.dark) .live-dot { background: #0284c7; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
 
-        /* ── SECTION NUM ── */
+        /* ── SCROLL DOWN INDICATOR ─────────────────────────────── */
+        .scroll-down {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.25em;
+            color: #6b7280; text-transform: uppercase;
+            animation: fade-in-up 1.2s ease 2s both;
+            transition: opacity 0.3s;
+        }
+        .scroll-down:hover { color: #0ea5e9; }
+        .dark .scroll-down:hover { color: #00f3ff; }
+        .scroll-mouse {
+            width: 22px; height: 34px; border: 2px solid currentColor;
+            border-radius: 11px; display: flex; align-items: flex-start; justify-content: center;
+            padding-top: 5px; opacity: 0.5;
+        }
+        .scroll-wheel { width: 3px; height: 7px; background: currentColor; border-radius: 2px; animation: scroll-wheel 1.6s ease infinite; }
+        @keyframes scroll-wheel { 0%{opacity:1;transform:translateY(0)} 60%{opacity:0;transform:translateY(10px)} 100%{opacity:0;transform:translateY(0)} }
+        @keyframes fade-in-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── TECH MARQUEE ──────────────────────────────────────── */
+        .marquee-wrap {
+            overflow: hidden; position: relative;
+            border-top: 1px solid rgba(0,0,0,0.07); border-bottom: 1px solid rgba(0,0,0,0.07);
+            background: rgba(255,255,255,0.4);
+        }
+        .dark .marquee-wrap { border-color: rgba(255,255,255,0.05); background: rgba(13,18,30,0.4); }
+        .marquee-wrap::before, .marquee-wrap::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 2;
+        }
+        .marquee-wrap::before { left: 0; background: linear-gradient(to right, rgba(249,250,251,1), transparent); }
+        .marquee-wrap::after { right: 0; background: linear-gradient(to left, rgba(249,250,251,1), transparent); }
+        .dark .marquee-wrap::before { background: linear-gradient(to right, rgba(8,12,20,1), transparent); }
+        .dark .marquee-wrap::after { background: linear-gradient(to left, rgba(8,12,20,1), transparent); }
+        .marquee-inner { display: flex; width: max-content; animation: marquee-scroll 28s linear infinite; }
+        .marquee-inner:hover { animation-play-state: paused; }
+        @keyframes marquee-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        .marquee-item {
+            display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px;
+            font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+            letter-spacing: 0.12em; color: #6b7280; white-space: nowrap;
+            transition: color 0.3s;
+        }
+        .dark .marquee-item { color: #4b5563; }
+        .marquee-item i { font-size: 14px; }
+        .marquee-item:hover { color: #0ea5e9; }
+        .dark .marquee-item:hover { color: #00f3ff; }
+        .marquee-sep { color: rgba(0,243,255,0.3); font-size: 16px; padding: 14px 4px; }
+
+        /* ── SECTION NUMBERS ───────────────────────────────────── */
         .sec-num { font-family:'JetBrains Mono',monospace; color:#0ea5e9; font-size:0.8rem; display:block; margin-bottom:6px; letter-spacing:0.05em; }
         .dark .sec-num { color:#00f3ff; }
 
-        /* ── TERMINAL ── */
+        /* ── SPARKLE DIVIDER ───────────────────────────────────── */
+        .sparkle-divider {
+            display: flex; align-items: center; gap: 16px; margin: 0 auto;
+            max-width: 300px; opacity: 0.4;
+        }
+        .sparkle-divider::before, .sparkle-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(to right, transparent, #0ea5e9);
+        }
+        .sparkle-divider::after { background: linear-gradient(to left, transparent, #0ea5e9); }
+        .dark .sparkle-divider::before { background: linear-gradient(to right, transparent, #00f3ff); }
+        .dark .sparkle-divider::after { background: linear-gradient(to left, transparent, #00f3ff); }
+        .sparkle-icon { font-size: 12px; color: #0ea5e9; }
+        .dark .sparkle-icon { color: #00f3ff; }
+
+        /* ── TERMINAL ──────────────────────────────────────────── */
         .terminal { background:#0d1117; border:1px solid rgba(0,243,255,0.13); border-radius:14px; overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,0.55), 0 0 40px rgba(0,243,255,0.04); }
         .term-header { background:#161b22; padding:11px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .term-dot { width:12px; height:12px; border-radius:50%; }
@@ -158,7 +288,7 @@
         .t-key { color:#ffa657; }
         .t-cursor { display:inline-block; width:7px; height:13px; background:#00f3ff; animation:blink 1s step-start infinite; vertical-align:middle; margin-left:1px; border-radius:1px; }
 
-        /* ── REVEAL ── */
+        /* ── REVEAL ANIMATIONS ─────────────────────────────────── */
         .reveal { opacity:0; transform:translateY(32px); transition:opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1); }
         .reveal.active { opacity:1; transform:translateY(0); }
         .reveal-r { opacity:0; transform:translateX(30px); transition:opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1); }
@@ -166,13 +296,12 @@
         .reveal-l { opacity:0; transform:translateX(-30px); transition:opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1); }
         .reveal-l.active { opacity:1; transform:translateX(0); }
 
-        /* ── SKILL BARS ── */
         .skill-bar { width:0; transition:width 1.6s cubic-bezier(0.16,1,0.3,1); }
 
-        /* ── TAG PILLS ── */
+        /* ── PILLS ─────────────────────────────────────────────── */
         .pill { display:inline-block; padding:2px 9px; border-radius:999px; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:500; border:1px solid; }
 
-        /* ── TILT / SPOTLIGHT CARDS ── */
+        /* ── 3D TILT ───────────────────────────────────────────── */
         .tilt { transform-style:preserve-3d; transform:perspective(900px); transition:transform 0.2s ease; }
         .spotlight {
             position:absolute; inset:0; border-radius:inherit; opacity:0; pointer-events:none;
@@ -180,139 +309,245 @@
             transition:opacity 0.3s;
         }
         .tilt:hover .spotlight { opacity:1; }
-        body:not(.dark) .spotlight { background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(14,165,233,0.1), transparent 55%); }
+        html:not(.dark) .spotlight { background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(14,165,233,0.1), transparent 55%); }
 
-        /* ── STAT NUMBERS ── */
+        /* ── STATS ─────────────────────────────────────────────── */
         .stat-num { font-size:2.4rem; font-weight:800; font-family:'JetBrains Mono',monospace; color:#0ea5e9; line-height:1; }
         .dark .stat-num { color:#00f3ff; }
 
-        /* ── SOCIAL ICONS ── */
+        /* ── SOCIAL ICONS ──────────────────────────────────────── */
         .soc-icon { transition:all 0.35s cubic-bezier(0.16,1,0.3,1); }
         .soc-icon:hover { transform:translateY(-5px) scale(1.12); color:#0ea5e9; text-shadow:0 0 14px rgba(14,165,233,0.6); }
         .dark .soc-icon:hover { color:#00f3ff; text-shadow:0 0 14px rgba(0,243,255,0.8); }
 
-        /* ── CONTACT TERMINAL ── */
+        /* ── CONTACT TERMINAL ──────────────────────────────────── */
         .contact-term { background:#0d1117; border:1px solid rgba(0,243,255,0.1); border-radius:18px; overflow:hidden; }
         .contact-term input, .contact-term textarea {
             background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
             border-radius:6px; color:#e6edf3; font-family:'JetBrains Mono',monospace;
             font-size:11.5px; width:100%; padding:8px 12px;
-            transition:border-color 0.2s; outline:none; resize:none;
+            transition:border-color 0.2s, box-shadow 0.2s; outline:none; resize:none;
         }
-        .contact-term input:focus, .contact-term textarea:focus { border-color:rgba(0,243,255,0.4); }
+        .contact-term input:focus, .contact-term textarea:focus { border-color:rgba(0,243,255,0.4); box-shadow: 0 0 0 3px rgba(0,243,255,0.07); }
         .contact-term input::placeholder, .contact-term textarea::placeholder { color:#4b5563; }
 
-        /* ── FOOTER SEPARATOR ── */
+        /* ── TOAST NOTIFICATION ────────────────────────────────── */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+            z-index: 9990; opacity: 0; pointer-events: none;
+            transition: all 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+        .toast-inner {
+            background: rgba(13,18,30,0.95); border: 1px solid rgba(0,243,255,0.25);
+            backdrop-filter: blur(16px); padding: 12px 20px; border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            display: flex; align-items: center; gap: 10px; white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(0,243,255,0.08);
+        }
+        html:not(.dark) .toast-inner { background: rgba(255,255,255,0.96); border-color: rgba(14,165,233,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+        #toast-icon { font-size: 14px; }
+        #toast-msg { color: #e6edf3; }
+        html:not(.dark) #toast-msg { color: #111827; }
+
+        /* ── FOOTER TICKER ─────────────────────────────────────── */
+        .footer-ticker-wrap { overflow: hidden; padding: 14px 0; border-top: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .dark .footer-ticker-wrap { border-color: rgba(255,255,255,0.05); }
+        .footer-ticker { display: flex; width: max-content; animation: marquee-scroll 22s linear infinite; }
+        .footer-tick-item {
+            font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700;
+            letter-spacing: 0.18em; color: #9ca3af; padding: 0 20px; white-space: nowrap;
+        }
+        .dark .footer-tick-item { color: #374151; }
+        .footer-tick-sep { color: rgba(0,243,255,0.4); padding: 0 6px; font-size: 14px; }
+        .dark .footer-tick-sep { color: rgba(0,243,255,0.25); }
+
+        /* ── TIMELINE ──────────────────────────────────────────── */
+        .timeline-line {
+            position:absolute; left:50%; top:0; bottom:0; width:1px;
+            background:linear-gradient(to bottom, transparent, rgba(0,243,255,0.3) 20%, rgba(0,243,255,0.15) 80%, transparent);
+            transform:translateX(-50%);
+        }
+        html:not(.dark) .timeline-line { background:linear-gradient(to bottom, transparent, rgba(14,165,233,0.25) 20%, rgba(14,165,233,0.12) 80%, transparent); }
+        .timeline-dot { width:12px; height:12px; border-radius:50%; background:#0d1117; border:2px solid #00f3ff; box-shadow:0 0 12px rgba(0,243,255,0.5); flex-shrink:0; transition:transform 0.3s, box-shadow 0.3s; }
+        html:not(.dark) .timeline-dot { background:#f9fafb; border-color:#0ea5e9; box-shadow:0 0 10px rgba(14,165,233,0.4); }
+        .timeline-item:hover .timeline-dot { transform:scale(1.4); box-shadow:0 0 20px rgba(0,243,255,0.7); }
+        .timeline-year { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#00f3ff; font-weight:700; }
+        html:not(.dark) .timeline-year { color:#0284c7; }
+
+        /* ── FOOTER / BACK-TOP ─────────────────────────────────── */
         .footer-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(0,243,255,0.2),transparent); }
-        body:not(.dark) .footer-sep { background:linear-gradient(90deg,transparent,rgba(14,165,233,0.2),transparent); }
+        html:not(.dark) .footer-sep { background:linear-gradient(90deg,transparent,rgba(14,165,233,0.2),transparent); }
+
+        #back-top {
+            position:fixed; bottom:28px; right:28px; z-index:55;
+            width:42px; height:42px; border-radius:50%;
+            background:rgba(0,243,255,0.1); border:1px solid rgba(0,243,255,0.25);
+            color:#00f3ff; display:flex; align-items:center; justify-content:center;
+            font-size:14px; opacity:0; pointer-events:none;
+            transform:translateY(10px);
+            transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+            backdrop-filter:blur(8px); box-shadow:0 0 16px rgba(0,243,255,0.08);
+        }
+        html:not(.dark) #back-top { background:rgba(14,165,233,0.08); border-color:rgba(14,165,233,0.22); color:#0ea5e9; }
+        #back-top.visible { opacity:1; pointer-events:all; transform:translateY(0); }
+        #back-top:hover { background:rgba(0,243,255,0.2); box-shadow:0 0 22px rgba(0,243,255,0.25); transform:translateY(-3px) !important; }
+        html:not(.dark) #back-top:hover { background:rgba(14,165,233,0.15); box-shadow:0 0 18px rgba(14,165,233,0.2); }
+
+        /* ── WIP CARD BADGE ────────────────────────────────────── */
+        .wip-overlay {
+            position: absolute; inset: 0; border-radius: inherit;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(8,12,20,0.55); backdrop-filter: blur(2px);
+            opacity: 0; transition: opacity 0.35s ease;
+        }
+        .group:hover .wip-overlay { opacity: 1; }
     </style>
 </head>
 
 <body class="bg-gray-50 text-gray-900 dark:bg-darkBg dark:text-white antialiased selection:bg-cyan-300 dark:selection:bg-neon selection:text-gray-900 dark:selection:text-black">
 
-    <!-- Scroll Progress -->
-    <div id="scroll-bar"></div>
+    <!-- ── PAGE LOADER ── -->
+    <div id="page-loader">
+        <div class="loader-logo">&lt;RFN/&gt;</div>
+        <div class="loader-track"><div class="loader-fill"></div></div>
+        <div class="loader-pct">LOADING...</div>
+    </div>
 
-    <!-- Custom Cursor (desktop only) -->
+    <!-- ── TOAST ── -->
+    <div id="toast">
+        <div class="toast-inner">
+            <i id="toast-icon" class="fas fa-check-circle text-neon"></i>
+            <span id="toast-msg">Pesan terkirim!</span>
+        </div>
+    </div>
+
+    <div id="scroll-bar"></div>
     <div id="cursor-dot" class="hidden lg:block"></div>
     <div id="cursor-ring" class="hidden lg:block"></div>
 
-    <!-- Matrix Rain -->
     <canvas id="rainCanvas" class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-25 dark:opacity-50 transition-opacity duration-500"></canvas>
 
-    <!-- Sidebar Left -->
+    <!-- ── LEFT SIDEBAR ── -->
     <div class="sidebar sidebar-l hidden lg:flex">
-        <a href="https://instagram.com/rizqiifadhillah" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-        <a href="https://t.me/myisrfn_2" target="_blank" title="Telegram"><i class="fab fa-telegram-plane"></i></a>
-        <a href="https://github.com/rizzDeveloperz" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+        <a href="https://instagram.com/rizqiifadhillah" target="_blank" title="Instagram" style="transition-delay:0.9s"><i class="fab fa-instagram"></i></a>
+        <a href="https://t.me/rallyriz" target="_blank" title="Telegram" style="transition-delay:1.05s"><i class="fab fa-telegram-plane"></i></a>
+        <a href="https://github.com/rizzDeveloperz" target="_blank" title="GitHub" style="transition-delay:1.2s"><i class="fab fa-github"></i></a>
         <div class="sidebar-line"></div>
     </div>
 
-    <!-- Sidebar Right -->
+    <!-- ── RIGHT SIDEBAR ── -->
     <div class="sidebar sidebar-r hidden lg:flex">
-        <a href="mailto:rizqifadhillah31@gmail.com" class="sidebar-email">rizqifadhillah31@gmail.com</a>
+        <a href="/cdn-cgi/l/email-protection#24564d5e554d4245404c4d4848454c1715644349454d480a474b49" class="sidebar-email" style="transition-delay:1.0s"><span class="__cf_email__" data-cfemail="99ebf0e3e8f0fff8fdf1f0f5f5f8f1aaa8d9fef4f8f0f5b7faf6f4">[email&#160;protected]</span></a>
         <div class="sidebar-line"></div>
     </div>
 
-    <!-- ═══ NAVBAR ═══ -->
+    <button id="back-top" aria-label="Back to top"><i class="fas fa-chevron-up"></i></button>
+
+    <!-- ── NAVBAR ── -->
     <nav id="navbar" class="fixed w-full z-50 py-4 transition-all duration-300">
         <div class="container mx-auto px-6 md:px-12 flex justify-between items-center">
-            <!-- Logo -->
             <a href="#home" class="text-2xl font-mono font-bold glow-text">&lt;RFN/&gt;</a>
 
-            <!-- Desktop Nav -->
-            <div class="hidden md:flex items-center space-x-7 text-xs font-mono tracking-widest">
-                <a href="#home"      class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_home">BERANDA</a>
-                <a href="#about"     class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_about">TENTANG</a>
-                <a href="#skills"    class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_skills">KEAHLIAN</a>
-                <a href="#portfolio" class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_portfolio">PORTOFOLIO</a>
-                <a href="#contact"   class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_contact">KONTAK</a>
+            <div class="hidden md:flex items-center space-x-5 lg:space-x-7 text-xs font-mono tracking-widest">
+                <a href="#home"       class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_home">BERANDA</a>
+                <a href="#about"      class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_about">TENTANG</a>
+                <a href="#experience" class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_exp">PERJALANAN</a>
+                <a href="#skills"     class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_skills">KEAHLIAN</a>
+                <a href="#services"   class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_services">LAYANAN</a>
+                <a href="#portfolio"  class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_portfolio">PORTOFOLIO</a>
+                <a href="#contact"    class="nav-link hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_contact">KONTAK</a>
             </div>
 
-            <!-- Controls -->
             <div class="flex items-center space-x-4">
-                <button id="langToggle" class="text-xs font-bold font-mono border border-gray-300 dark:border-gray-700 hover:border-cyan-500 dark:hover:border-neon px-2.5 py-1 rounded hover:text-cyan-600 dark:hover:text-neon transition-all flex items-center gap-1.5 focus:outline-none">
+                <button id="langToggle" class="text-xs font-bold font-mono border border-gray-300 dark:border-gray-700 hover:border-cyan-500 dark:hover:border-neon px-2.5 py-1 rounded hover:text-cyan-600 dark:hover:text-neon transition-all flex items-center gap-1.5 focus:outline-none btn-ripple">
                     <i class="fas fa-globe text-xs"></i> <span id="currentLang">ID</span>
                 </button>
-                <button id="themeToggle" class="w-8 h-8 flex items-center justify-center hover:text-cyan-600 dark:hover:text-neon transition-colors focus:outline-none text-base">
+                <button id="themeToggle" class="w-8 h-8 flex items-center justify-center hover:text-cyan-600 dark:hover:text-neon transition-colors focus:outline-none text-base btn-ripple">
                     <i id="themeIcon" class="fas fa-sun"></i>
                 </button>
-                <button id="mobile-menu-btn" class="md:hidden hover:text-cyan-600 dark:hover:text-neon focus:outline-none transition-colors">
-                    <i class="fas fa-bars text-lg"></i>
+                <!-- Hamburger Button with morph animation -->
+                <button id="mobile-menu-btn" class="md:hidden hover:text-cyan-600 dark:hover:text-neon focus:outline-none transition-colors p-1">
+                    <div class="flex flex-col justify-center items-center gap-[5px] w-6 h-6">
+                        <span class="ham-bar"></span>
+                        <span class="ham-bar"></span>
+                        <span class="ham-bar"></span>
+                    </div>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden absolute w-full left-0 top-full bg-white/95 dark:bg-darkBg/98 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 flex-col text-center space-y-5 py-7 shadow-xl transition-colors duration-500">
-            <a href="#home"      class="block font-mono text-sm hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_home">BERANDA</a>
-            <a href="#about"     class="block font-mono text-sm hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_about">TENTANG</a>
-            <a href="#skills"    class="block font-mono text-sm hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_skills">KEAHLIAN</a>
-            <a href="#portfolio" class="block font-mono text-sm hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_portfolio">PORTOFOLIO</a>
-            <a href="#contact"   class="block font-mono text-sm hover:text-cyan-600 dark:hover:text-neon transition-colors" data-i18n="nav_contact">KONTAK</a>
+        <div id="mobile-menu" class="shadow-xl">
+            <a href="#home"       class="block font-mono text-sm py-1" data-i18n="nav_home">BERANDA</a>
+            <a href="#about"      class="block font-mono text-sm py-1" data-i18n="nav_about">TENTANG</a>
+            <a href="#experience" class="block font-mono text-sm py-1" data-i18n="nav_exp">PERJALANAN</a>
+            <a href="#skills"     class="block font-mono text-sm py-1" data-i18n="nav_skills">KEAHLIAN</a>
+            <a href="#services"   class="block font-mono text-sm py-1" data-i18n="nav_services">LAYANAN</a>
+            <a href="#portfolio"  class="block font-mono text-sm py-1" data-i18n="nav_portfolio">PORTOFOLIO</a>
+            <a href="#contact"    class="block font-mono text-sm py-1" data-i18n="nav_contact">KONTAK</a>
+            <div class="menu-socials mt-2">
+                <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="text-gray-400 hover:text-pink-500 transition-colors"><i class="fab fa-instagram"></i></a>
+                <a href="https://t.me/rallyriz" target="_blank" class="text-gray-400 hover:text-cyan-500 transition-colors"><i class="fab fa-telegram-plane"></i></a>
+                <a href="https://github.com/rizzDeveloperz" target="_blank" class="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"><i class="fab fa-github"></i></a>
+            </div>
         </div>
     </nav>
 
-    <!-- ═══ HERO ═══ -->
-    <section id="home" class="min-h-screen flex items-center pt-20 pb-10">
+    <!-- ══════════════════════════════════════════ HERO ══════════════════════════════════════════ -->
+    <section id="home" class="min-h-screen flex items-center pt-20 pb-10 relative">
         <div class="container mx-auto px-6 lg:px-20 xl:px-28 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-            <!-- Left: Copy -->
             <div>
                 <div class="live-badge reveal active mb-5" data-i18n="hero_badge">
                     <span class="live-dot"></span>Tersedia untuk proyek baru
                 </div>
-
                 <p class="font-mono text-cyan-600 dark:text-neon text-sm tracking-widest mb-3 reveal active" style="transition-delay:.04s" data-i18n="hero_hello">// Halo, Dunia! Saya</p>
 
-                <h1 class="text-5xl md:text-6xl xl:text-7xl font-extrabold mb-4 leading-[1.08] reveal active" style="transition-delay:.09s">
-                    <span class="grad-text">Rizqi</span><br>
-                    Fadhillah<br>
-                    Nursalim
-                </h1>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-5 mb-4 reveal active" style="transition-delay:.09s">
+                    <div class="relative shrink-0 w-28 h-28 md:w-32 md:h-32">
+                        <div class="absolute inset-0 rounded-full bg-cyan-400/20 dark:bg-neon/15 blur-xl"></div>
+                        <div class="relative w-full h-full rounded-full p-[2px] bg-gradient-to-br from-cyan-400 via-violet-500 to-cyan-200">
+                            <div class="relative w-full h-full rounded-full overflow-hidden bg-gray-100 dark:bg-darkBg border border-white/50 dark:border-white/10">
+                                <img src="me.png" alt="Foto Rizqi" width="512" height="512" loading="eager" fetchpriority="high" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="hidden absolute inset-0 items-center justify-center rounded-full text-gray-300 dark:text-gray-500">
+                                    <i class="fas fa-user-astronaut text-4xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-400 border-[3px] border-gray-50 dark:border-darkBg shadow-[0_0_14px_rgba(52,211,153,0.75)]" aria-hidden="true"></span>
+                    </div>
+                    <h1 class="text-5xl md:text-6xl xl:text-7xl font-extrabold leading-[1.08]">
+                        <span class="grad-text">Rizqi</span><br>Fadhillah<br>Nursalim
+                    </h1>
+                </div>
 
-                <p class="text-base md:text-lg text-gray-500 dark:text-gray-400 font-mono mb-9 h-7 reveal active" style="transition-delay:.16s">
+                <p class="text-base md:text-lg text-gray-500 dark:text-gray-400 font-mono mb-4 h-7 reveal active" style="transition-delay:.16s">
                     <span id="typewriter" class="typing-cursor"></span>
                 </p>
 
+                <div class="flex flex-wrap gap-2 mb-8 reveal active" style="transition-delay:.19s">
+                    <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5" data-i18n="hero_chip_1">Bot Otomasi</span>
+                    <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5" data-i18n="hero_chip_2">Web Modern</span>
+                    <span class="pill text-emerald-600 dark:text-emerald-400 border-emerald-400/30 bg-emerald-400/5" data-i18n="hero_chip_3">UI Rapi</span>
+                </div>
+
                 <div class="flex flex-wrap gap-3 reveal active" style="transition-delay:.23s">
-                    <a href="#portfolio" class="inline-flex items-center gap-2 bg-cyan-500 dark:bg-neon text-white dark:text-black font-bold px-6 py-3 rounded-xl hover:scale-[1.04] hover:shadow-lg hover:shadow-cyan-500/30 dark:hover:shadow-neon/25 active:scale-95 transition-all text-sm tracking-wider" data-i18n="hero_cta_work">
+                    <a href="#portfolio" class="btn-ripple inline-flex items-center gap-2 bg-cyan-500 dark:bg-neon text-white dark:text-black font-bold px-6 py-3 rounded-xl hover:scale-[1.04] hover:shadow-lg hover:shadow-cyan-500/30 dark:hover:shadow-neon/25 active:scale-95 transition-all text-sm tracking-wider" data-i18n="hero_cta_work">
                         LIHAT KARYA <i class="fas fa-arrow-right"></i>
                     </a>
-                    <a href="#contact" class="inline-flex items-center gap-2 glass-panel px-6 py-3 rounded-xl text-sm font-semibold tracking-wider text-gray-800 dark:text-white hover:scale-[1.02] active:scale-95 transition-all" data-i18n="hero_cta_contact">
+                    <a href="#contact" class="btn-ripple inline-flex items-center gap-2 glass-panel px-6 py-3 rounded-xl text-sm font-semibold tracking-wider text-gray-800 dark:text-white hover:scale-[1.02] active:scale-95 transition-all" data-i18n="hero_cta_contact">
                         HUBUNGI SAYA
                     </a>
                 </div>
 
-                <!-- Social (mobile) -->
                 <div class="flex gap-6 mt-10 lg:hidden reveal active" style="transition-delay:.3s">
                     <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="soc-icon text-2xl text-gray-400"><i class="fab fa-instagram"></i></a>
-                    <a href="https://t.me/myisrfn_2" target="_blank" class="soc-icon text-2xl text-gray-400"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="https://t.me/thisriz" target="_blank" class="soc-icon text-2xl text-gray-400"><i class="fab fa-telegram-plane"></i></a>
                     <a href="https://github.com/rizzDeveloperz" target="_blank" class="soc-icon text-2xl text-gray-400"><i class="fab fa-github"></i></a>
                 </div>
             </div>
 
-            <!-- Right: Terminal -->
             <div class="reveal-r active hidden lg:block" style="transition-delay:.15s">
                 <div class="terminal max-w-md ml-auto">
                     <div class="term-header">
@@ -326,20 +561,74 @@
                 </div>
             </div>
         </div>
+
+        <!-- Scroll Down Indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex">
+            <a href="#about" class="scroll-down">
+                <div class="scroll-mouse">
+                    <div class="scroll-wheel"></div>
+                </div>
+                <span>SCROLL</span>
+            </a>
+        </div>
     </section>
 
-    <!-- ═══ ABOUT ═══ -->
+    <!-- ══════════════════════ TECH MARQUEE STRIP ════════════════════════ -->
+    <div class="marquee-wrap py-0">
+        <div class="marquee-inner">
+            <!-- Set 1 -->
+            <span class="marquee-item"><i class="fab fa-js text-yellow-400"></i> JAVASCRIPT</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-node-js text-green-400"></i> NODE.JS</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-python text-blue-400"></i> PYTHON</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-telegram-plane text-cyan-400"></i> TELEGRAF V4</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-whatsapp text-emerald-400"></i> BAILEYS WA</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-robot text-violet-400"></i> GEMINI API</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-css3-alt text-indigo-400"></i> TAILWIND CSS</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-bolt text-amber-400"></i> GSAP</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-git-alt text-orange-400"></i> GIT / GITHUB</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-code text-pink-400"></i> VIBE CODING</span>
+            <span class="marquee-sep">✦</span>
+            <!-- Set 2 (duplicate for seamless loop) -->
+            <span class="marquee-item"><i class="fab fa-js text-yellow-400"></i> JAVASCRIPT</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-node-js text-green-400"></i> NODE.JS</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-python text-blue-400"></i> PYTHON</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-telegram-plane text-cyan-400"></i> TELEGRAF V4</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-whatsapp text-emerald-400"></i> BAILEYS WA</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-robot text-violet-400"></i> GEMINI API</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-css3-alt text-indigo-400"></i> TAILWIND CSS</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-bolt text-amber-400"></i> GSAP</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fab fa-git-alt text-orange-400"></i> GIT / GITHUB</span>
+            <span class="marquee-sep">✦</span>
+            <span class="marquee-item"><i class="fas fa-code text-pink-400"></i> VIBE CODING</span>
+            <span class="marquee-sep">✦</span>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════ ABOUT ════════════════════════════════════ -->
     <section id="about" class="py-24">
         <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
-
             <div class="mb-12 reveal">
                 <span class="sec-num" data-i18n="about_num">01. about_me()</span>
                 <h2 class="text-3xl md:text-4xl font-bold" data-i18n="about_title">Tentang Saya</h2>
             </div>
-
             <div class="grid lg:grid-cols-5 gap-12 items-start">
-
-                <!-- Copy (wider) -->
                 <div class="lg:col-span-3 reveal-l">
                     <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-5 text-lg" data-i18n="about_p1">
                         Halo! Saya <strong class="text-gray-900 dark:text-white">Rizqi Fadhillah Nursalim</strong>, developer yang antusias dengan dunia teknologi. Saya senang mengubah masalah kompleks menjadi antarmuka yang indah dan fungsional.
@@ -347,7 +636,6 @@
                     <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-8 text-lg" data-i18n="about_p2">
                         Filosofi saya adalah <em class="text-cyan-600 dark:text-neon font-semibold not-italic">"Vibe Coding"</em> — kode yang tidak hanya berfungsi, tetapi juga rapi, mudah dibaca, dan memberikan pengalaman visual yang memukau.
                     </p>
-
                     <p class="font-mono text-xs text-gray-400 dark:text-gray-600 mb-3 tracking-wider" data-i18n="about_tech_lbl">// teknologi yang sering dipakai:</p>
                     <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm font-mono mb-8">
                         <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span class="text-cyan-500 dark:text-neon text-xs">▹</span>JavaScript (ES6+)</span>
@@ -357,21 +645,19 @@
                         <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span class="text-cyan-500 dark:text-neon text-xs">▹</span>HTML5 / CSS3</span>
                         <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span class="text-cyan-500 dark:text-neon text-xs">▹</span>WA Baileys</span>
                     </div>
-
                     <div class="flex flex-wrap gap-3">
-                        <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2">
+                        <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2 btn-ripple">
                             <i class="fab fa-instagram"></i> @rizqiifadhillah
                         </a>
-                        <a href="https://t.me/myisrfn_2" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2">
-                            <i class="fab fa-telegram"></i> @myisrfn_2
+                        <a href="https://t.me/thisriz" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2 btn-ripple">
+                            <i class="fab fa-telegram"></i> @thisriz
                         </a>
-                        <a href="https://github.com/rizzDeveloperz" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2">
+                        <a href="https://github.com/rizzDeveloperz" target="_blank" class="glass-panel px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:text-cyan-600 dark:hover:text-neon transition-colors flex items-center gap-2 btn-ripple">
                             <i class="fab fa-github"></i> @rizzDeveloperz
                         </a>
                     </div>
                 </div>
 
-                <!-- Avatar + Stats -->
                 <div class="lg:col-span-2 reveal-r">
                     <div class="relative group mx-auto w-52 h-52 mb-8">
                         <div class="absolute inset-0 bg-gradient-to-br from-cyan-400/25 to-violet-500/20 rounded-2xl transform rotate-6 transition-all duration-500 group-hover:rotate-[14deg]"></div>
@@ -385,7 +671,7 @@
                             <div class="text-xs text-gray-400 dark:text-gray-600 mt-1 font-mono" data-i18n="stat_proj">Proyek</div>
                         </div>
                         <div class="glass-panel rounded-xl p-4 text-center">
-                            <div class="stat-num counter" data-target="14">0</div>
+                            <div class="stat-num counter" data-target="4">0</div>
                             <div class="text-xs text-gray-400 dark:text-gray-600 mt-1 font-mono" data-i18n="stat_yr">Tahun</div>
                         </div>
                         <div class="glass-panel rounded-xl p-4 text-center">
@@ -398,142 +684,202 @@
         </div>
     </section>
 
-    <!-- ═══ SKILLS ═══ -->
-    <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-gray-100/50 dark:via-black/25 to-transparent">
-        <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
+    <!-- ═════════════════════════════ SPARKLE DIVIDER ═══════════════════════════════ -->
+    <div class="py-2 text-center reveal">
+        <div class="sparkle-divider mx-auto">
+            <span class="sparkle-icon">✦</span>
+        </div>
+    </div>
 
-            <div class="mb-12 text-center reveal">
-                <span class="sec-num" data-i18n="skills_num">02. skills()</span>
-                <h2 class="text-3xl md:text-4xl font-bold" data-i18n="skills_title">Skill & Keahlian</h2>
+    <!-- ══════════════════════════════════ EXPERIENCE ═══════════════════════════════ -->
+    <section id="experience" class="py-24">
+        <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
+            <div class="mb-14 reveal">
+                <span class="sec-num" data-i18n="exp_num">01.5. experience()</span>
+                <h2 class="text-3xl md:text-4xl font-bold" data-i18n="exp_title">Perjalanan Saya</h2>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-5">
-
-                <!-- JS -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-js text-yellow-400 text-2xl"></i><span class="font-bold font-mono">JavaScript</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">85%</span>
+            <!-- Desktop timeline -->
+            <div class="relative hidden md:block">
+                <div class="timeline-line"></div>
+                <div class="timeline-item grid grid-cols-2 gap-8 mb-12 items-center reveal">
+                    <div class="text-right pr-10">
+                        <div class="glass-panel p-5 rounded-2xl inline-block text-left w-full">
+                            <span class="timeline-year" data-i18n="exp1_year">2024 — Sekarang</span>
+                            <h3 class="font-bold text-lg mt-1 mb-2 dark:text-white" data-i18n="exp1_title">Freelance Bot Developer</h3>
+                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="exp1_desc">Membangun bot WhatsApp & Telegram untuk klien — mulai dari debt management, grup automation, hingga AI-powered bots dengan Gemini API.</p>
+                            <div class="flex flex-wrap gap-1.5 mt-3">
+                                <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Node.js</span>
+                                <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Baileys</span>
+                                <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Telegraf</span>
+                                <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-1.5 rounded-full skill-bar shadow-yellow-400/40 dark:shadow-yellow-400/60" data-w="85%" style="box-shadow:0 0 8px rgba(250,204,21,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">ES6+</span>
-                        <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">DOM API</span>
-                        <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">Async/Await</span>
-                        <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">GSAP</span>
-                    </div>
-                </div>
-
-                <!-- Python -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-python text-blue-400 text-2xl"></i><span class="font-bold font-mono">Python</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">75%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-1.5 rounded-full skill-bar" data-w="75%" style="box-shadow:0 0 8px rgba(96,165,250,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Scripting</span>
-                        <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Automation</span>
-                        <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">REST API</span>
+                    <div class="flex items-center">
+                        <div class="timeline-dot absolute left-1/2 -translate-x-1/2"></div>
+                        <div class="pl-10 text-xs font-mono text-gray-400 dark:text-gray-600"><i class="fas fa-code text-cyan-500 dark:text-neon mr-2"></i><span data-i18n="exp1_badge">Active</span></div>
                     </div>
                 </div>
 
-                <!-- HTML -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-html5 text-orange-400 text-2xl"></i><span class="font-bold font-mono">HTML5</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">95%</span>
+                <div class="timeline-item grid grid-cols-2 gap-8 mb-12 items-center reveal" style="transition-delay:.1s">
+                    <div class="text-right pr-10 flex items-center justify-end">
+                        <div class="pl-10 text-xs font-mono text-gray-400 dark:text-gray-600 text-left"><i class="fas fa-graduation-cap text-cyan-500 dark:text-neon mr-2"></i><span data-i18n="exp2_badge">Self-taught</span></div>
                     </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 rounded-full skill-bar" data-w="95%" style="box-shadow:0 0 8px rgba(251,146,60,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">Semantic</span>
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">Accessibility</span>
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">SEO</span>
-                    </div>
-                </div>
-
-                <!-- CSS -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-css3-alt text-indigo-400 text-2xl"></i><span class="font-bold font-mono">CSS3 / Tailwind</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">90%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-indigo-400 to-violet-500 h-1.5 rounded-full skill-bar" data-w="90%" style="box-shadow:0 0 8px rgba(139,92,246,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Flexbox</span>
-                        <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Grid</span>
-                        <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Animation</span>
-                        <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Glassmorphism</span>
+                    <div class="pl-10">
+                        <div class="timeline-dot absolute left-1/2 -translate-x-1/2"></div>
+                        <div class="glass-panel p-5 rounded-2xl">
+                            <span class="timeline-year" data-i18n="exp2_year">2023</span>
+                            <h3 class="font-bold text-lg mt-1 mb-2 dark:text-white" data-i18n="exp2_title">Mulai Belajar Web Dev</h3>
+                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="exp2_desc">Self-taught journey — menguasai HTML, CSS, JavaScript, dan mulai membangun project pertama.</p>
+                            <div class="flex flex-wrap gap-1.5 mt-3">
+                                <span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">HTML5</span>
+                                <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">CSS3</span>
+                                <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">JavaScript</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Node.js -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-node-js text-green-500 text-2xl"></i><span class="font-bold font-mono">Node.js</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">70%</span>
+                <div class="timeline-item grid grid-cols-2 gap-8 items-center reveal" style="transition-delay:.2s">
+                    <div class="text-right pr-10">
+                        <div class="glass-panel p-5 rounded-2xl inline-block text-left w-full">
+                            <span class="timeline-year" data-i18n="exp3_year">2022</span>
+                            <h3 class="font-bold text-lg mt-1 mb-2 dark:text-white" data-i18n="exp3_title">Eksplorasi Scripting & Python</h3>
+                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="exp3_desc">Mulai coding dengan Python untuk automation dan scripting, bereksperimen dengan REST API.</p>
+                            <div class="flex flex-wrap gap-1.5 mt-3">
+                                <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Python</span>
+                                <span class="pill text-gray-500 dark:text-gray-400 border-gray-400/30 bg-gray-400/5">Automation</span>
+                                <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">REST API</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-1.5 rounded-full skill-bar" data-w="70%" style="box-shadow:0 0 8px rgba(74,222,128,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Baileys</span>
-                        <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Express</span>
-                        <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Cron</span>
-                        <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Rate Limiting</span>
-                        <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Telegraf v4</span>
-                        <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini API</span>
-                    </div>
-                </div>
-
-                <!-- Git -->
-                <div class="glass-panel p-6 rounded-2xl reveal">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-3"><i class="fab fa-git-alt text-orange-600 text-2xl"></i><span class="font-bold font-mono">Git / GitHub</span></div>
-                        <span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">78%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3">
-                        <div class="bg-gradient-to-r from-orange-500 to-orange-700 h-1.5 rounded-full skill-bar" data-w="78%" style="box-shadow:0 0 8px rgba(249,115,22,0.5)"></div>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Version Control</span>
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Branching</span>
-                        <span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Open Source</span>
+                    <div class="flex items-center">
+                        <div class="timeline-dot absolute left-1/2 -translate-x-1/2"></div>
+                        <div class="pl-10 text-xs font-mono text-gray-400 dark:text-gray-600"><i class="fas fa-rocket text-cyan-500 dark:text-neon mr-2"></i><span data-i18n="exp3_badge">Origin</span></div>
                     </div>
                 </div>
+            </div>
 
+            <!-- Mobile timeline -->
+            <div class="md:hidden space-y-5">
+                <div class="glass-panel p-5 rounded-2xl reveal border-l-2 border-cyan-500/40 dark:border-neon/40">
+                    <span class="timeline-year" data-i18n="exp1_year">2024 — Sekarang</span>
+                    <h3 class="font-bold text-base mt-1 mb-1.5" data-i18n="exp1_title">Freelance Bot Developer</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm" data-i18n="exp1_desc">Membangun bot WhatsApp & Telegram untuk klien — mulai dari debt management, grup automation, hingga AI-powered bots.</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl reveal border-l-2 border-cyan-500/40 dark:border-neon/40" style="transition-delay:.08s">
+                    <span class="timeline-year" data-i18n="exp2_year">2023</span>
+                    <h3 class="font-bold text-base mt-1 mb-1.5" data-i18n="exp2_title">Mulai Belajar Web Dev</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm" data-i18n="exp2_desc">Self-taught journey — menguasai HTML, CSS, JavaScript, dan mulai membangun project pertama.</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl reveal border-l-2 border-cyan-500/40 dark:border-neon/40" style="transition-delay:.16s">
+                    <span class="timeline-year" data-i18n="exp3_year">2022</span>
+                    <h3 class="font-bold text-base mt-1 mb-1.5" data-i18n="exp3_title">Eksplorasi Scripting & Python</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm" data-i18n="exp3_desc">Mulai coding dengan Python untuk automation dan scripting, bereksperimen dengan REST API.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ PORTFOLIO ═══ -->
+    <!-- ══════════════════════════════════ SKILLS ════════════════════════════════════ -->
+    <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-gray-100/50 dark:via-black/25 to-transparent">
+        <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
+            <div class="mb-12 text-center reveal">
+                <span class="sec-num" data-i18n="skills_num">02. skills()</span>
+                <h2 class="text-3xl md:text-4xl font-bold" data-i18n="skills_title">Skill & Keahlian</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-5">
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-js text-yellow-400 text-2xl"></i><span class="font-bold font-mono">JavaScript</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">85%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-1.5 rounded-full skill-bar" data-w="85%" style="box-shadow:0 0 8px rgba(250,204,21,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">ES6+</span><span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">DOM API</span><span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">Async/Await</span><span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5">GSAP</span></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-python text-blue-400 text-2xl"></i><span class="font-bold font-mono">Python</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">75%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-blue-400 to-blue-600 h-1.5 rounded-full skill-bar" data-w="75%" style="box-shadow:0 0 8px rgba(96,165,250,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Scripting</span><span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Automation</span><span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">REST API</span></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-html5 text-orange-400 text-2xl"></i><span class="font-bold font-mono">HTML5</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">95%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 rounded-full skill-bar" data-w="95%" style="box-shadow:0 0 8px rgba(251,146,60,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">Semantic</span><span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">Accessibility</span><span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">SEO</span></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-css3-alt text-indigo-400 text-2xl"></i><span class="font-bold font-mono">CSS3 / Tailwind</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">90%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-indigo-400 to-violet-500 h-1.5 rounded-full skill-bar" data-w="90%" style="box-shadow:0 0 8px rgba(139,92,246,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Flexbox</span><span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Grid</span><span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Animation</span><span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Glassmorphism</span></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-node-js text-green-500 text-2xl"></i><span class="font-bold font-mono">Node.js</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">70%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-green-400 to-emerald-500 h-1.5 rounded-full skill-bar" data-w="70%" style="box-shadow:0 0 8px rgba(74,222,128,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Baileys</span><span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Express</span><span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Cron</span><span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Telegraf v4</span><span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini API</span></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl reveal">
+                    <div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><i class="fab fa-git-alt text-orange-600 text-2xl"></i><span class="font-bold font-mono">Git / GitHub</span></div><span class="text-cyan-600 dark:text-neon font-mono font-bold text-sm">78%</span></div>
+                    <div class="w-full bg-gray-200 dark:bg-white/5 rounded-full h-1.5 mb-3"><div class="bg-gradient-to-r from-orange-500 to-orange-700 h-1.5 rounded-full skill-bar" data-w="78%" style="box-shadow:0 0 8px rgba(249,115,22,0.5)"></div></div>
+                    <div class="flex flex-wrap gap-1.5"><span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Version Control</span><span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Branching</span><span class="pill text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/5">Open Source</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═════════════════════════════ SPARKLE DIVIDER ═══════════════════════════════ -->
+    <div class="py-2 text-center reveal">
+        <div class="sparkle-divider mx-auto"><span class="sparkle-icon">✦</span></div>
+    </div>
+
+    <!-- ══════════════════════════════════ SERVICES ══════════════════════════════════ -->
+    <section id="services" class="py-24 bg-gradient-to-b from-transparent via-cyan-50/60 dark:via-cyan-950/10 to-transparent">
+        <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
+            <div class="mb-12 text-center reveal">
+                <span class="sec-num" data-i18n="services_num">03. services()</span>
+                <h2 class="text-3xl md:text-4xl font-bold" data-i18n="services_title">Layanan yang Bisa Saya Bantu</h2>
+                <p class="text-gray-500 dark:text-gray-500 max-w-2xl mx-auto mt-3 text-sm" data-i18n="services_sub">Mulai dari landing page sampai bot automasi, fokusnya tetap sama: cepat dipakai, rapi dikembangkan, dan enak dilihat.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-5">
+                <article class="glass-panel rounded-2xl p-6 reveal tilt relative overflow-hidden btn-ripple">
+                    <div class="spotlight"></div>
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-neon flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"><i class="fas fa-window-restore text-xl"></i></div>
+                    <h3 class="font-bold text-lg mb-2" data-i18n="service1_title">Landing Page Modern</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="service1_desc">Halaman promosi responsif dengan animasi halus, struktur SEO, dan CTA yang jelas.</p>
+                    <div class="flex flex-wrap gap-1.5 mt-4"><span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">HTML</span><span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5">Tailwind</span><span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">GSAP</span></div>
+                </article>
+                <article class="glass-panel rounded-2xl p-6 reveal tilt relative overflow-hidden btn-ripple" style="transition-delay:.08s">
+                    <div class="spotlight"></div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5"><i class="fas fa-robot text-xl"></i></div>
+                    <h3 class="font-bold text-lg mb-2" data-i18n="service2_title">Bot Automation</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="service2_desc">Bot WhatsApp dan Telegram untuk notifikasi, manajemen grup, scraping ringan, dan workflow harian.</p>
+                    <div class="flex flex-wrap gap-1.5 mt-4"><span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5">Node.js</span><span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Telegraf</span><span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">Gemini</span></div>
+                </article>
+                <article class="glass-panel rounded-2xl p-6 reveal tilt relative overflow-hidden btn-ripple" style="transition-delay:.16s">
+                    <div class="spotlight"></div>
+                    <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center mb-5"><i class="fas fa-wand-magic-sparkles text-xl"></i></div>
+                    <h3 class="font-bold text-lg mb-2" data-i18n="service3_title">UI Cleanup & Debugging</h3>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="service3_desc">Perbaikan bug visual, dark/light mode, interaksi JavaScript, dan layout mobile agar tampil lebih profesional.</p>
+                    <div class="flex flex-wrap gap-1.5 mt-4"><span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5">Debug</span><span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Responsive</span><span class="pill text-pink-600 dark:text-pink-400 border-pink-400/30 bg-pink-400/5">Polish</span></div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════ PORTFOLIO ═════════════════════════════════ -->
     <section id="portfolio" class="py-24">
         <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
-
             <div class="mb-12 reveal">
-                <span class="sec-num" data-i18n="port_num">03. portfolio()</span>
+                <span class="sec-num" data-i18n="port_num">04. portfolio()</span>
                 <h2 class="text-3xl md:text-4xl font-bold" data-i18n="port_title">Portofolio & Proyek</h2>
             </div>
 
+            <!-- Featured Projects -->
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-                <!-- Card 1: Featured - WhatsApp Bot -->
+                <!-- Port 4 - Debt Bot -->
                 <div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group md:col-span-2 lg:col-span-3" style="transition-delay:.24s">
                     <div class="spotlight"></div>
                     <div class="grid md:grid-cols-4 gap-0">
                         <div class="h-44 md:h-auto bg-gradient-to-br from-green-400/10 to-emerald-600/8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200/60 dark:border-white/5 relative overflow-hidden">
                             <i class="fab fa-whatsapp text-6xl text-green-400/40 group-hover:text-green-500/65 group-hover:scale-110 transition-all duration-500"></i>
-                            <div class="absolute top-3 left-3">
-                                <span class="text-xs font-mono text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-400/10 px-2 py-0.5 rounded-md border border-green-200 dark:border-green-400/20">⭐ Featured</span>
-                            </div>
+                            <div class="absolute top-3 left-3"><span class="text-xs font-mono text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-400/10 px-2 py-0.5 rounded-md border border-green-200 dark:border-green-400/20">⭐ Featured</span></div>
                         </div>
                         <div class="p-6 md:col-span-3 flex flex-col justify-center">
                             <div class="flex flex-wrap gap-1.5 mb-3">
@@ -551,17 +897,14 @@
                     </div>
                 </div>
 
-                <!-- Card 2: ZxcV AI - RFN Telegram Bot -->
-<div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group md:col-span-2 lg:col-span-3" style="transition-delay:.1s">
-    <div class="spotlight"></div>
-    <div class="grid md:grid-cols-4 gap-0">
-        <div class="h-44 md:h-auto bg-gradient-to-br from-blue-500/10 to-cyan-500/8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200/60 dark:border-white/5 relative overflow-hidden">
-            <i class="fab fa-telegram-plane text-6xl text-blue-400/40 group-hover:text-blue-400/70 group-hover:scale-110 transition-all duration-500"></i>
-            <div class="absolute top-3 left-3">
-                <span class="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-400/10 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-400/20">🤖 AI Bot</span>
-            </div>
-        </div>
-                        
+                <!-- Port 5 - ZxcV AI -->
+                <div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group md:col-span-2 lg:col-span-3" style="transition-delay:.1s">
+                    <div class="spotlight"></div>
+                    <div class="grid md:grid-cols-4 gap-0">
+                        <div class="h-44 md:h-auto bg-gradient-to-br from-blue-500/10 to-cyan-500/8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200/60 dark:border-white/5 relative overflow-hidden">
+                            <i class="fab fa-telegram-plane text-6xl text-blue-400/40 group-hover:text-blue-400/70 group-hover:scale-110 transition-all duration-500"></i>
+                            <div class="absolute top-3 left-3"><span class="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-400/10 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-400/20">🤖 AI Bot</span></div>
+                        </div>
                         <div class="p-6 md:col-span-3 flex flex-col justify-center">
                             <div class="flex flex-wrap gap-1.5 mb-3">
                                 <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">Node.js</span>
@@ -573,24 +916,117 @@
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-400 dark:group-hover:text-blue-400 transition-colors" data-i18n="port5_title">ZxcV AI - RFN</h3>
                                 <a href="https://github.com/rizzDeveloperz" target="_blank" class="text-gray-400 dark:text-gray-600 hover:text-blue-400 transition-colors text-sm ml-4 flex-shrink-0"><i class="fab fa-github text-lg"></i></a>
                             </div>
-                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="port5_desc">Bot Telegram AI multi-fitur dengan Gemini API, identity-locked responses, role-based access control, rate limiting, inline keyboards, dan 6 tools terintegrasi — TikTok/IG DL, Spotify, FF & IG stalk.</p>
+                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="port5_desc">Bot Telegram AI multi-fitur dengan Gemini API, identity-locked responses, role-based access control, rate limiting, inline keyboards, dan 6 tools terintegrasi.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Port 6 - Portfolio -->
+                <div class="glass-panel rounded-2xl overflow-hidden tilt reveal relative group md:col-span-2 lg:col-span-3" style="transition-delay:.18s">
+                    <div class="spotlight"></div>
+                    <div class="grid md:grid-cols-4 gap-0">
+                        <div class="h-44 md:h-auto bg-gradient-to-br from-violet-500/10 to-fuchsia-500/8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200/60 dark:border-white/5 relative overflow-hidden">
+                            <i class="fas fa-layer-group text-6xl text-violet-400/40 group-hover:text-violet-400/70 group-hover:scale-110 transition-all duration-500"></i>
+                            <div class="absolute top-3 left-3"><span class="text-xs font-mono text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-400/10 px-2 py-0.5 rounded-md border border-violet-200 dark:border-violet-400/20">Live Portfolio</span></div>
+                        </div>
+                        <div class="p-6 md:col-span-3 flex flex-col justify-center">
+                            <div class="flex flex-wrap gap-1.5 mb-3">
+                                <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5">Tailwind CSS</span>
+                                <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5">GSAP</span>
+                                <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5">i18n</span>
+                                <span class="pill text-pink-600 dark:text-pink-400 border-pink-400/30 bg-pink-400/5">Dark Mode</span>
+                            </div>
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors" data-i18n="port6_title">Portfolio v2 — RFN</h3>
+                                <a href="#home" class="text-gray-400 dark:text-gray-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors text-sm ml-4 flex-shrink-0"><i class="fas fa-arrow-up-right-from-square text-lg"></i></a>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-500 text-sm leading-relaxed" data-i18n="port6_desc">Portofolio ini! Single-file dengan neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, dan Brittany Chiang-style sidebars.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Projects (Port 1-3 — Previously Missing!) -->
+            <div class="mt-12 reveal">
+                <p class="font-mono text-xs text-gray-400 dark:text-gray-600 mb-6 tracking-widest">// other_projects:</p>
+                <div class="grid md:grid-cols-3 gap-4">
+
+                    <!-- Port 1 - Vibe Landing Page -->
+                    <div class="glass-panel rounded-2xl p-6 group tilt relative overflow-hidden reveal" style="transition-delay:.05s">
+                        <div class="spotlight"></div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-neon transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-window-maximize"></i>
+                            </div>
+                            <div class="flex gap-3 text-gray-400 dark:text-gray-600">
+                                <span class="text-xs font-mono bg-amber-400/10 text-amber-600 dark:text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full">🚧 WIP</span>
+                                <a href="https://github.com/rizzDeveloperz" target="_blank" class="hover:text-cyan-500 transition-colors"><i class="fab fa-github"></i></a>
+                            </div>
+                        </div>
+                        <h3 class="font-bold mb-2 group-hover:text-cyan-600 dark:group-hover:text-neon transition-colors" data-i18n="port1_title">Vibe Landing Page</h3>
+                        <p class="text-gray-500 dark:text-gray-500 text-xs leading-relaxed mb-4" data-i18n="port1_desc">Landing page modern dengan animasi interaktif dan performa optimal.</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="pill text-orange-600 dark:text-orange-400 border-orange-400/30 bg-orange-400/5 text-[10px]">HTML5</span>
+                            <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5 text-[10px]">Tailwind</span>
+                            <span class="pill text-violet-600 dark:text-violet-400 border-violet-400/30 bg-violet-400/5 text-[10px]">GSAP</span>
                         </div>
                     </div>
 
+                    <!-- Port 2 - Telegram Bot Automation -->
+                    <div class="glass-panel rounded-2xl p-6 group tilt relative overflow-hidden reveal" style="transition-delay:.12s">
+                        <div class="spotlight"></div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fab fa-telegram-plane"></i>
+                            </div>
+                            <div class="flex gap-3 text-gray-400 dark:text-gray-600">
+                                <span class="text-xs font-mono bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 border border-emerald-400/20 px-2 py-0.5 rounded-full">✅ Done</span>
+                                <a href="https://github.com/rizzDeveloperz" target="_blank" class="hover:text-blue-400 transition-colors"><i class="fab fa-github"></i></a>
+                            </div>
+                        </div>
+                        <h3 class="font-bold mb-2 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" data-i18n="port2_title">Telegram Bot Automasi</h3>
+                        <p class="text-gray-500 dark:text-gray-500 text-xs leading-relaxed mb-4" data-i18n="port2_desc">Bot cerdas untuk mengelola grup Telegram dan memberikan notifikasi otomatis.</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="pill text-green-600 dark:text-green-400 border-green-400/30 bg-green-400/5 text-[10px]">Node.js</span>
+                            <span class="pill text-blue-600 dark:text-blue-400 border-blue-400/30 bg-blue-400/5 text-[10px]">Telegraf</span>
+                            <span class="pill text-cyan-600 dark:text-cyan-400 border-cyan-400/30 bg-cyan-400/5 text-[10px]">Cron</span>
+                        </div>
+                    </div>
+
+                    <!-- Port 3 - Analytics Dashboard -->
+                    <div class="glass-panel rounded-2xl p-6 group tilt relative overflow-hidden reveal" style="transition-delay:.19s">
+                        <div class="spotlight"></div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="flex gap-3 text-gray-400 dark:text-gray-600">
+                                <span class="text-xs font-mono bg-amber-400/10 text-amber-600 dark:text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full">🚧 WIP</span>
+                                <a href="https://github.com/rizzDeveloperz" target="_blank" class="hover:text-fuchsia-400 transition-colors"><i class="fab fa-github"></i></a>
+                            </div>
+                        </div>
+                        <h3 class="font-bold mb-2 group-hover:text-fuchsia-500 dark:group-hover:text-fuchsia-400 transition-colors" data-i18n="port3_title">Dashboard Analitik</h3>
+                        <p class="text-gray-500 dark:text-gray-500 text-xs leading-relaxed mb-4" data-i18n="port3_desc">Dashboard interaktif yang menampilkan data real-time dengan grafik yang indah.</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="pill text-yellow-600 dark:text-yellow-400 border-yellow-400/30 bg-yellow-400/5 text-[10px]">JavaScript</span>
+                            <span class="pill text-fuchsia-600 dark:text-fuchsia-400 border-fuchsia-400/30 bg-fuchsia-400/5 text-[10px]">Chart.js</span>
+                            <span class="pill text-indigo-600 dark:text-indigo-400 border-indigo-400/30 bg-indigo-400/5 text-[10px]">REST API</span>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ CONTACT ═══ -->
+    <!-- ══════════════════════════════════ CONTACT ═══════════════════════════════════ -->
     <section id="contact" class="py-24 bg-gradient-to-b from-transparent to-gray-100/60 dark:to-black/40">
         <div class="container mx-auto px-6 md:px-12 lg:px-20 xl:px-28">
-
             <div class="mb-12 text-center reveal">
-                <span class="sec-num" data-i18n="contact_num">04. contact()</span>
+                <span class="sec-num" data-i18n="contact_num">05. contact()</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-3" data-i18n="contact_title">Hubungi Saya</h2>
                 <p class="text-gray-500 dark:text-gray-500 max-w-sm mx-auto text-sm" data-i18n="contact_sub">Ada proyek seru? Let's collab dan build sesuatu yang keren!</p>
             </div>
-
             <div class="max-w-3xl mx-auto reveal">
                 <div class="contact-term">
                     <div class="term-header">
@@ -600,38 +1036,24 @@
                         <span class="text-gray-500 text-xs font-mono ml-3">bash ~ contact.sh</span>
                     </div>
                     <div class="p-6 md:p-8 grid md:grid-cols-2 gap-8 font-mono">
-                        <!-- Left: contact info -->
                         <div>
                             <div class="mb-4 text-xs">
                                 <span class="t-prompt">$ </span><span class="t-cmd">cat contact_info.json</span>
                             </div>
                             <div class="text-xs leading-8 ml-2">
                                 <div><span class="t-out">{</span></div>
-                                <div class="ml-4">
-                                    <span class="t-key">"instagram"</span><span class="t-out">: </span>
-                                    <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="t-str hover:underline">"@rizqiifadhillah"</a><span class="t-out">,</span>
-                                </div>
-                                <div class="ml-4">
-                                    <span class="t-key">"telegram"</span><span class="t-out">: </span>
-                                    <a href="https://t.me/myisrfn_2" target="_blank" class="t-str hover:underline">"@myisrfn_2"</a><span class="t-out">,</span>
-                                </div>
-                                <div class="ml-4">
-                                    <span class="t-key">"github"</span><span class="t-out">: </span>
-                                    <a href="https://github.com/rizzDeveloperz" target="_blank" class="t-str hover:underline">"@rizzDeveloperz"</a>
-                                </div>
+                                <div class="ml-4"><span class="t-key">"instagram"</span><span class="t-out">: </span><a href="https://instagram.com/rizqiifadhillah" target="_blank" class="t-str hover:underline">"@rizqiifadhillah"</a><span class="t-out">,</span></div>
+                                <div class="ml-4"><span class="t-key">"telegram"</span><span class="t-out">: </span><a href="https://t.me/thisriz" target="_blank" class="t-str hover:underline">"@thisriz"</a><span class="t-out">,</span></div>
+                                <div class="ml-4"><span class="t-key">"email"</span><span class="t-out">: </span><a href="/cdn-cgi/l/email-protection#3d4f54474c545b5c59555451515c550e0c7d5a505c5451135e5250" class="t-str hover:underline">"<span class="__cf_email__" data-cfemail="53213a29223a3532373b3a3f3f323b606213343e323a3f7d303c3e">[email&#160;protected]</span>"</a><span class="t-out">,</span></div>
+                                <div class="ml-4"><span class="t-key">"github"</span><span class="t-out">: </span><a href="https://github.com/rizzDeveloperz" target="_blank" class="t-str hover:underline">"@rizzDeveloperz"</a></div>
                                 <div><span class="t-out">}</span></div>
                             </div>
                             <div class="mt-5 flex items-center gap-2 text-xs">
                                 <span class="t-prompt">$ </span><span class="t-cmd">echo $STATUS</span>
                             </div>
-                            <div class="ml-4 mt-1 text-xs">
-                                <span class="t-str">→ Open to opportunities 🚀</span>
-                            </div>
-                            <div class="mt-2 flex items-center gap-1 text-xs ml-4">
-                                <span class="t-cursor"></span>
-                            </div>
+                            <div class="ml-4 mt-1 text-xs"><span class="t-str">→ Open to opportunities 🚀</span></div>
+                            <div class="mt-2 ml-4 text-xs"><span class="t-cursor"></span></div>
                         </div>
-                        <!-- Right: quick reach -->
                         <div>
                             <div class="mb-4 text-xs">
                                 <span class="t-prompt">$ </span><span class="t-cmd">./send_message.sh</span>
@@ -639,19 +1061,22 @@
                             <div class="space-y-3">
                                 <div>
                                     <div class="t-out text-xs mb-1.5">// nama kamu:</div>
-                                    <input type="text" placeholder="John Doe" />
+                                    <input id="contact-name" type="text" placeholder="John Doe" />
                                 </div>
                                 <div>
                                     <div class="t-out text-xs mb-1.5">// pesanmu:</div>
-                                    <textarea rows="3" placeholder="Halo Rizqi, saya tertarik untuk..."></textarea>
+                                    <textarea id="contact-msg" rows="3" placeholder="Halo Rizqi, saya tertarik untuk..."></textarea>
                                 </div>
-                                <div class="flex gap-2 pt-1">
-                                    <a href="https://t.me/myisrfn_2" target="_blank" class="flex-1 text-center bg-neon/10 hover:bg-neon/20 border border-neon/25 text-neon text-xs px-3 py-2.5 rounded transition-all flex items-center justify-center gap-2">
+                                <div class="grid grid-cols-3 gap-2 pt-1">
+                                    <a href="https://t.me/thisriz" target="_blank" class="btn-ripple text-center bg-neon/10 hover:bg-neon/20 border border-neon/25 text-neon text-xs px-3 py-2.5 rounded transition-all flex items-center justify-center gap-2 active:scale-95">
                                         <i class="fab fa-telegram"></i> Telegram
                                     </a>
-                                    <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="flex-1 text-center bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 text-violet-400 text-xs px-3 py-2.5 rounded transition-all flex items-center justify-center gap-2">
+                                    <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="btn-ripple text-center bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 text-violet-400 text-xs px-3 py-2.5 rounded transition-all flex items-center justify-center gap-2 active:scale-95">
                                         <i class="fab fa-instagram"></i> Instagram
                                     </a>
+                                    <button id="send-msg-btn" class="btn-ripple text-center bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 text-cyan-300 text-xs px-3 py-2.5 rounded transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                                        <i class="fas fa-paper-plane"></i> Kirim
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -661,29 +1086,62 @@
         </div>
     </section>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="py-8 text-center">
+    <!-- ══════════════════════════════════ FOOTER ════════════════════════════════════ -->
+    <footer class="pt-4 pb-8 text-center">
+        <!-- Footer ticker -->
+        <div class="footer-ticker-wrap mb-8">
+            <div class="footer-ticker">
+                <span class="footer-tick-item">VIBE CODING</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">BOT DEVELOPMENT</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">WEB MODERN</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">NODE.JS</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">UI POLISH</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">GSAP MAGIC</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">GEMINI API</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">OPEN SOURCE</span><span class="footer-tick-sep">✦</span>
+                <!-- Duplicate -->
+                <span class="footer-tick-item">VIBE CODING</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">BOT DEVELOPMENT</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">WEB MODERN</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">NODE.JS</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">UI POLISH</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">GSAP MAGIC</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">GEMINI API</span><span class="footer-tick-sep">✦</span>
+                <span class="footer-tick-item">OPEN SOURCE</span><span class="footer-tick-sep">✦</span>
+            </div>
+        </div>
+
         <div class="footer-sep mb-8"></div>
         <p class="font-mono text-sm text-gray-400 dark:text-gray-600" data-i18n="footer_made">
             Dibuat dengan <i class="fas fa-heart text-cyan-500 dark:text-neon mx-1"></i> &amp; <i class="fas fa-coffee text-amber-500 mx-1"></i> oleh
             <span class="text-gray-700 dark:text-gray-400 font-bold">Rizqi Fadhillah Nursalim</span>
         </p>
-        <p class="text-gray-400 dark:text-gray-700 text-xs mt-2 font-mono" data-i18n="footer_rights">© 2026 All Rights Reserved.</p>
+        <p class="text-gray-400 dark:text-gray-700 text-xs mt-2 font-mono" data-i18n="footer_rights">© 2026 Hak Cipta Dilindungi.</p>
         <div class="flex justify-center gap-7 mt-5">
             <a href="https://instagram.com/rizqiifadhillah" target="_blank" class="soc-icon text-xl text-gray-300 dark:text-gray-700"><i class="fab fa-instagram"></i></a>
-            <a href="https://t.me/myisrfn_2"              target="_blank" class="soc-icon text-xl text-gray-300 dark:text-gray-700"><i class="fab fa-telegram-plane"></i></a>
+            <a href="https://t.me/rallyriz"              target="_blank" class="soc-icon text-xl text-gray-300 dark:text-gray-700"><i class="fab fa-telegram-plane"></i></a>
             <a href="https://github.com/rizzDeveloperz"   target="_blank" class="soc-icon text-xl text-gray-300 dark:text-gray-700"><i class="fab fa-github"></i></a>
         </div>
     </footer>
 
-    <!-- ═══════════════ SCRIPTS ═══════════════ -->
-    <script>
-    // ── i18n ──
+    <!-- ══════════════════════════════════════════════════════════════════════════════
+         JAVASCRIPT
+    ═══════════════════════════════════════════════════════════════════════════════ -->
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // ── i18n DATA ──────────────────────────────────────────────────────────────────
     const i18n = {
         id: {
-            nav_home:"BERANDA", nav_about:"TENTANG", nav_skills:"KEAHLIAN", nav_portfolio:"PORTOFOLIO", nav_contact:"KONTAK",
-            hero_badge:"Tersedia untuk proyek baru",
+            nav_home:"BERANDA", nav_about:"TENTANG", nav_exp:"PERJALANAN", nav_skills:"KEAHLIAN", nav_services:"LAYANAN", nav_portfolio:"PORTOFOLIO", nav_contact:"KONTAK",
+            hero_badge:'<span class="live-dot"></span>Tersedia untuk proyek baru',
+            exp_num:"01.5. experience()", exp_title:"Perjalanan Saya",
+            exp1_year:"2024 — Sekarang", exp1_title:"Freelance Bot Developer", exp1_badge:"Active",
+            exp1_desc:"Membangun bot WhatsApp & Telegram untuk klien — mulai dari debt management, grup automation, hingga AI-powered bots dengan Gemini API. Fokus pada arsitektur yang clean, scalable, dan fitur-rich.",
+            exp2_year:"2023", exp2_title:"Mulai Belajar Web Dev", exp2_badge:"Self-taught",
+            exp2_desc:"Self-taught journey — menguasai HTML, CSS, JavaScript, dan fundamental web development. Mulai membangun project pertama dan menemukan filosofi \"Vibe Coding\".",
+            exp3_year:"2022", exp3_title:"Eksplorasi Scripting & Python", exp3_badge:"Origin",
+            exp3_desc:"Mulai coding dengan Python untuk automation dan scripting. Bereksperimen dengan berbagai API dan membangun tool-tool kecil untuk kebutuhan sehari-hari.",
             hero_hello:"// Halo, Dunia! Saya",
+            hero_chip_1:"Bot Otomasi", hero_chip_2:"Web Modern", hero_chip_3:"UI Rapi",
             hero_cta_work:'LIHAT KARYA <i class="fas fa-arrow-right"></i>',
             hero_cta_contact:"HUBUNGI SAYA",
             about_num:"01. about_me()", about_title:"Tentang Saya",
@@ -692,22 +1150,35 @@
             about_tech_lbl:"// teknologi yang sering dipakai:",
             stat_proj:"Proyek", stat_yr:"Tahun", stat_lang:"Bahasa",
             skills_num:"02. skills()", skills_title:"Skill & Keahlian",
-            port_num:"03. portfolio()", port_title:"Portofolio & Proyek",
+            services_num:"03. services()", services_title:"Layanan yang Bisa Saya Bantu",
+            services_sub:"Mulai dari landing page sampai bot automasi, fokusnya tetap sama: cepat dipakai, rapi dikembangkan, dan enak dilihat.",
+            service1_title:"Landing Page Modern", service1_desc:"Halaman promosi responsif dengan animasi halus, struktur SEO, dan CTA yang jelas.",
+            service2_title:"Bot Automation", service2_desc:"Bot WhatsApp dan Telegram untuk notifikasi, manajemen grup, scraping ringan, dan workflow harian.",
+            service3_title:"UI Cleanup & Debugging", service3_desc:"Perbaikan bug visual, dark/light mode, interaksi JavaScript, dan layout mobile agar tampil lebih profesional.",
+            port_num:"04. portfolio()", port_title:"Portofolio & Proyek",
             port1_title:"Vibe Landing Page", port1_desc:"Landing page modern dengan animasi interaktif dan performa optimal.",
             port2_title:"Telegram Bot Automasi", port2_desc:"Bot cerdas untuk mengelola grup Telegram dan memberikan notifikasi otomatis.",
             port3_title:"Dashboard Analitik", port3_desc:"Dashboard interaktif yang menampilkan data real-time dengan grafik yang indah.",
             port4_title:"RFN × Indokuota Debt Bot", port4_desc:"Bot WhatsApp manajemen hutang & piutang berbasis Node.js dengan fitur rate limiting, auto-backup harian, dashboard ASCII + leaderboard, timezone WIB, dan sistem multi-command yang canggih.",
             port5_title:"ZxcV AI - RFN", port5_desc:"Bot Telegram AI multi-fitur dengan Gemini API, identity-locked responses, role-based access control, rate limiting, inline keyboards, dan 6 tools terintegrasi — TikTok/IG DL, Spotify, FF & IG stalk.",
             port6_title:"Portfolio v2 — RFN", port6_desc:"Portofolio ini! Single-file dengan neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, dan Brittany Chiang-style sidebars.",
-            contact_num:"04. contact()", contact_title:"Hubungi Saya", contact_sub:"Ada proyek seru? Let's collab dan build sesuatu yang keren!",
+            contact_num:"05. contact()", contact_title:"Hubungi Saya", contact_sub:"Ada proyek seru? Let's collab dan build sesuatu yang keren!",
             footer_made:'Dibuat dengan <i class="fas fa-heart text-cyan-500 dark:text-neon mx-1"></i> &amp; <i class="fas fa-coffee text-amber-500 mx-1"></i> oleh <span class="text-gray-700 dark:text-gray-400 font-bold">Rizqi Fadhillah Nursalim</span>',
             footer_rights:"© 2026 Hak Cipta Dilindungi.",
             typewriter:["Web Developer.","Node.js Engineer.","Penggemar Python.","UI Designer.","Vibe Coder."]
         },
         en: {
-            nav_home:"HOME", nav_about:"ABOUT", nav_skills:"SKILLS", nav_portfolio:"PORTFOLIO", nav_contact:"CONTACT",
-            hero_badge:"Available for new projects",
+            nav_home:"HOME", nav_about:"ABOUT", nav_exp:"JOURNEY", nav_skills:"SKILLS", nav_services:"SERVICES", nav_portfolio:"PORTFOLIO", nav_contact:"CONTACT",
+            hero_badge:'<span class="live-dot"></span>Available for new projects',
+            exp_num:"01.5. experience()", exp_title:"My Journey",
+            exp1_year:"2024 — Present", exp1_title:"Freelance Bot Developer", exp1_badge:"Active",
+            exp1_desc:"Building WhatsApp & Telegram bots for clients — from debt management and group automation to AI-powered bots with Gemini API. Focused on clean, scalable, feature-rich architecture.",
+            exp2_year:"2023", exp2_title:"Started Web Development", exp2_badge:"Self-taught",
+            exp2_desc:"Self-taught journey — mastering HTML, CSS, JavaScript, and web fundamentals. Built first projects and discovered the Vibe Coding philosophy.",
+            exp3_year:"2022", exp3_title:"Scripting & Python Exploration", exp3_badge:"Origin",
+            exp3_desc:"Started coding with Python for automation and scripting. Experimented with various APIs and built small tools for everyday needs.",
             hero_hello:"// Hello, World! I'm",
+            hero_chip_1:"Bot Automation", hero_chip_2:"Modern Web", hero_chip_3:"Clean UI",
             hero_cta_work:'SEE MY WORK <i class="fas fa-arrow-right"></i>',
             hero_cta_contact:"CONTACT ME",
             about_num:"01. about_me()", about_title:"About Me",
@@ -716,21 +1187,72 @@
             about_tech_lbl:"// tech I frequently use:",
             stat_proj:"Projects", stat_yr:"Years", stat_lang:"Languages",
             skills_num:"02. skills()", skills_title:"Skills & Expertise",
-            port_num:"03. portfolio()", port_title:"Portfolio & Projects",
+            services_num:"03. services()", services_title:"What I Can Build",
+            services_sub:"From landing pages to automation bots, the focus stays the same: fast to use, clean to maintain, and polished on screen.",
+            service1_title:"Modern Landing Pages", service1_desc:"Responsive promo pages with smooth animation, SEO structure, and clear calls to action.",
+            service2_title:"Bot Automation", service2_desc:"WhatsApp and Telegram bots for notifications, group management, light scraping, and daily workflows.",
+            service3_title:"UI Cleanup & Debugging", service3_desc:"Visual bug fixes, dark/light mode, JavaScript interactions, and mobile layout polish.",
+            port_num:"04. portfolio()", port_title:"Portfolio & Projects",
             port1_title:"Vibe Landing Page", port1_desc:"Modern landing page with interactive animations and optimal performance.",
             port2_title:"Telegram Automation Bot", port2_desc:"Smart bot for managing Telegram groups and providing automated notifications.",
             port3_title:"Analytics Dashboard", port3_desc:"Interactive dashboard displaying real-time data with beautiful charts.",
             port4_title:"RFN × Indokuota Debt Bot", port4_desc:"WhatsApp debt & receivables management bot built with Node.js — featuring rate limiting, daily auto-backup, ASCII dashboard + leaderboard, WIB timezone, and powerful multi-commands.",
-            port5_title:"ZxcV AI - RFN", port5_desc:"Multi-feature Telegram AI bot powered by Gemini API — identity-locked responses, role-based access control, rate limiting, inline keyboards, and 6 integrated tools: TikTok/IG DL, Spotify, FF & IG stalk.",
+            port5_title:"ZxcV AI - RFN", port5_desc:"Multi-feature Telegram AI bot powered by Gemini API — identity-locked responses, role-based access control, rate limiting, inline keyboards, and 6 integrated tools.",
             port6_title:"Portfolio v2 — RFN", port6_desc:"This portfolio! Single-file with neon cursor, ScrollTrigger, 3D tilt cards, glassmorphism, bilingual ID/EN toggle, dark/light mode, and Brittany Chiang-style sidebars.",
-            contact_num:"04. contact()", contact_title:"Contact Me", contact_sub:"Have a cool project? Let's collab and build something awesome!",
+            contact_num:"05. contact()", contact_title:"Contact Me", contact_sub:"Have a cool project? Let's collab and build something awesome!",
             footer_made:'Made with <i class="fas fa-heart text-cyan-500 dark:text-neon mx-1"></i> &amp; <i class="fas fa-coffee text-amber-500 mx-1"></i> by <span class="text-gray-700 dark:text-gray-400 font-bold">Rizqi Fadhillah Nursalim</span>',
             footer_rights:"© 2026 All Rights Reserved.",
             typewriter:["Web Developer.","Node.js Engineer.","Python Enthusiast.","UI Designer.","Vibe Coder."]
         }
     };
 
-    let lang = localStorage.getItem('lang') || 'id';
+    // ── STORAGE HELPER ─────────────────────────────────────────────────────────────
+    const store = {
+        get(key, fallback) { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } },
+        set(key, value) { try { localStorage.setItem(key, value); } catch {} }
+    };
+
+    // ── PAGE LOADER ────────────────────────────────────────────────────────────────
+    const loader = document.getElementById('page-loader');
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            loader.classList.add('done');
+            // Trigger sidebar entrance after loader done
+            document.querySelectorAll('.sidebar-l a, .sidebar-email').forEach(el => {
+                el.classList.add('sidebar-loaded');
+            });
+        }, 1600);
+    });
+
+    // ── TOAST SYSTEM ───────────────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon  = document.getElementById('toast-icon');
+        const msgEl = document.getElementById('toast-msg');
+        icon.className = type === 'success'
+            ? 'fas fa-check-circle' + (document.documentElement.classList.contains('dark') ? ' text-neon' : ' text-cyan-500')
+            : 'fas fa-exclamation-circle text-red-400';
+        msgEl.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // ── RIPPLE EFFECT ──────────────────────────────────────────────────────────────
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.btn-ripple');
+        if (!btn) return;
+        const r = btn.getBoundingClientRect();
+        const wave = document.createElement('span');
+        wave.className = 'ripple-wave';
+        const size = Math.max(r.width, r.height) * 2;
+        wave.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - r.left - size/2}px;top:${e.clientY - r.top - size/2}px`;
+        btn.appendChild(wave);
+        wave.addEventListener('animationend', () => wave.remove());
+    });
+
+    // ── LANGUAGE ───────────────────────────────────────────────────────────────────
+    let lang = store.get('lang', 'id');
+    if (!i18n[lang]) lang = 'id';
     let twTexts = i18n[lang].typewriter;
 
     function applyLang(l) {
@@ -742,78 +1264,72 @@
         document.documentElement.lang = l;
         twTexts = i18n[l].typewriter;
     }
-
     document.getElementById('langToggle').addEventListener('click', () => {
         lang = lang === 'id' ? 'en' : 'id';
-        localStorage.setItem('lang', lang);
+        store.set('lang', lang);
         applyLang(lang);
     });
     applyLang(lang);
 
-    // ── THEME ──
+    // ── THEME ──────────────────────────────────────────────────────────────────────
     const themeBtn = document.getElementById('themeToggle');
     const themeIco = document.getElementById('themeIcon');
     let dark = document.documentElement.classList.contains('dark');
-    function syncTheme() { themeIco.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+    function syncTheme() {
+        themeIco.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        themeBtn.style.transform = 'rotate(360deg)';
+        setTimeout(() => { themeBtn.style.transform = ''; }, 400);
+    }
     syncTheme();
     themeBtn.addEventListener('click', () => {
         dark = !dark;
         document.documentElement.classList.toggle('dark', dark);
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        store.set('theme', dark ? 'dark' : 'light');
         syncTheme();
     });
+    themeBtn.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
 
-    // ── SCROLL PROGRESS ──
+    // ── SCROLL PROGRESS ────────────────────────────────────────────────────────────
     const bar = document.getElementById('scroll-bar');
     window.addEventListener('scroll', () => {
         const total = document.documentElement.scrollHeight - window.innerHeight;
         bar.style.width = (window.scrollY / total * 100) + '%';
     }, { passive: true });
 
-    // ── CUSTOM CURSOR ──
+    // ── CURSOR ─────────────────────────────────────────────────────────────────────
     const dot  = document.getElementById('cursor-dot');
     const ring = document.getElementById('cursor-ring');
     let rx = 0, ry = 0, dx = 0, dy = 0;
-
     document.addEventListener('mousemove', e => {
         dx = e.clientX; dy = e.clientY;
         dot.style.left = dx + 'px'; dot.style.top = dy + 'px';
     }, { passive: true });
-
     (function animRing() {
-        rx += (dx - rx) * 0.13;
-        ry += (dy - ry) * 0.13;
+        rx += (dx - rx) * 0.13; ry += (dy - ry) * 0.13;
         ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
         requestAnimationFrame(animRing);
     })();
-
     document.querySelectorAll('a, button, .tilt').forEach(el => {
         el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
         el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
     });
 
-    // ── MATRIX RAIN ──
+    // ── RAIN CANVAS ────────────────────────────────────────────────────────────────
     const cv = document.getElementById('rainCanvas');
     const cx = cv.getContext('2d');
     function resizeCV() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
     window.addEventListener('resize', resizeCV, { passive: true });
     resizeCV();
-
     const drops = Array.from({length: 90}, () => ({
-        x: Math.random() * cv.width,
-        y: Math.random() * cv.height,
-        len: Math.random() * 22 + 8,
-        sp: Math.random() * 2.2 + 1.2,
+        x: Math.random() * cv.width, y: Math.random() * cv.height,
+        len: Math.random() * 22 + 8, sp: Math.random() * 2.2 + 1.2,
         op: Math.random() * 0.4 + 0.05
     }));
-
     function drawRain() {
         cx.clearRect(0, 0, cv.width, cv.height);
         const d = document.documentElement.classList.contains('dark');
         drops.forEach(dr => {
-            cx.beginPath();
-            cx.moveTo(dr.x, dr.y);
-            cx.lineTo(dr.x, dr.y + dr.len);
+            cx.beginPath(); cx.moveTo(dr.x, dr.y); cx.lineTo(dr.x, dr.y + dr.len);
             cx.strokeStyle = d ? `rgba(0,243,255,${dr.op})` : `rgba(14,165,233,${dr.op * 0.55})`;
             cx.lineWidth = 1; cx.lineCap = 'round'; cx.stroke();
             dr.y += dr.sp;
@@ -823,13 +1339,14 @@
     }
     drawRain();
 
-    // ── CURRENTLY BUILDING WIDGET ──
-    setTimeout(() => {
-        const vs = document.getElementById('vibe-status');
-        if (vs) vs.classList.add('show');
-    }, 2200);
+    // ── BACK TO TOP ────────────────────────────────────────────────────────────────
+    const btt = document.getElementById('back-top');
+    window.addEventListener('scroll', () => {
+        btt.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-    // ── TYPEWRITER ──
+    // ── TYPEWRITER ─────────────────────────────────────────────────────────────────
     let twI = 0, twIdx = 0, twDel = false;
     function type() {
         if (twI >= twTexts.length) twI = 0;
@@ -845,34 +1362,25 @@
     }
     setTimeout(type, 1400);
 
-    // ── TERMINAL ANIMATION ──
+    // ── TERMINAL ANIMATION ─────────────────────────────────────────────────────────
     const termLines = [
         { t:'c', v:'whoami' },
         { t:'o', v:'Rizqi Fadhillah Nursalim' },
         { t:'c', v:'cat philosophy.txt' },
         { t:'o', v:'"Vibe Coding — code that feels alive."' },
         { t:'c', v:'ls ./projects/' },
-        { t:'o', v:'debt-bot/  telegram-bot/  portfolio-v2/' },
+        { t:'o', v:'debt-bot/  telegram-bot/' },
         { t:'c', v:'node --version && python3 --version' },
         { t:'o', v:'v20.14.0 | Python 3.11.4' },
         { t:'c', v:'git log --oneline -1' },
-        { t:'o', v:'a3f9b12 feat: vibe portfolio v2 ✨' },
+        { t:'o', v:'a3f9b12 feat: vibe portfolio v3 ✨' },
     ];
     const tOut = document.getElementById('term-out');
     let tI = 0;
-
-    function appendLine(html) {
-        const d = document.createElement('div');
-        d.innerHTML = html;
-        tOut.appendChild(d);
-    }
-
+    function appendLine(html) { const d = document.createElement('div'); d.innerHTML = html; tOut.appendChild(d); }
     function nextTermLine() {
         if (!tOut) return;
-        if (tI >= termLines.length) {
-            appendLine('<span class="t-prompt">$ </span><span class="t-cursor"></span>');
-            return;
-        }
+        if (tI >= termLines.length) { appendLine('<span class="t-prompt">$ </span><span class="t-cursor"></span>'); return; }
         const ln = termLines[tI];
         if (ln.t === 'c') {
             const d = document.createElement('div');
@@ -892,7 +1400,7 @@
     }
     setTimeout(nextTermLine, 900);
 
-    // ── SCROLL REVEAL ──
+    // ── REVEAL ON SCROLL ───────────────────────────────────────────────────────────
     const revEls = document.querySelectorAll('.reveal, .reveal-l, .reveal-r');
     const revObs = new IntersectionObserver((entries, obs) => {
         entries.forEach(e => {
@@ -905,7 +1413,7 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
     revEls.forEach(el => { if (!el.classList.contains('active')) revObs.observe(el); });
 
-    // ── STATS COUNTER ──
+    // ── COUNTERS ───────────────────────────────────────────────────────────────────
     const countObs = new IntersectionObserver((entries, obs) => {
         entries.forEach(e => {
             if (e.isIntersecting) {
@@ -923,7 +1431,7 @@
     }, { threshold: 0.6 });
     document.querySelectorAll('.counter').forEach(el => countObs.observe(el));
 
-    // ── NAVBAR SCROLL ──
+    // ── NAVBAR SCROLL ──────────────────────────────────────────────────────────────
     const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 55) {
@@ -935,7 +1443,7 @@
         }
     }, { passive: true });
 
-    // ── ACTIVE NAV LINK ──
+    // ── ACTIVE NAV SECTION ─────────────────────────────────────────────────────────
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
     window.addEventListener('scroll', () => {
@@ -947,15 +1455,46 @@
         });
     }, { passive: true });
 
-    // ── MOBILE MENU ──
-    const mBtn = document.getElementById('mobile-menu-btn');
+    // ── MOBILE MENU (ANIMATED) ─────────────────────────────────────────────────────
+    const mBtn  = document.getElementById('mobile-menu-btn');
     const mMenu = document.getElementById('mobile-menu');
-    mBtn.addEventListener('click', () => { mMenu.classList.toggle('hidden'); mMenu.classList.toggle('flex'); });
-    mMenu.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', () => { mMenu.classList.add('hidden'); mMenu.classList.remove('flex'); });
+    const mLinks = [...mMenu.querySelectorAll('a:not(.menu-socials a)')];
+    const mSocials = [...mMenu.querySelectorAll('.menu-socials a')];
+
+    // Init: all links invisible
+    [...mLinks, ...mSocials].forEach(a => {
+        a.style.opacity = '0';
+        a.style.transform = 'translateY(-10px)';
+        a.style.transition = 'opacity 0.3s ease, transform 0.3s ease, color 0.3s';
     });
 
-    // ── 3D TILT CARDS ──
+    mBtn.addEventListener('click', () => {
+        const isOpen = mMenu.classList.toggle('open');
+        mBtn.classList.toggle('open', isOpen);
+
+        mLinks.forEach((a, i) => {
+            a.style.transitionDelay = isOpen ? `${i * 0.055 + 0.1}s` : '0s';
+            a.style.opacity = isOpen ? '1' : '0';
+            a.style.transform = isOpen ? 'translateY(0)' : 'translateY(-10px)';
+        });
+        mSocials.forEach((a, i) => {
+            a.style.transitionDelay = isOpen ? `${mLinks.length * 0.055 + i * 0.06 + 0.15}s` : '0s';
+            a.style.opacity = isOpen ? '1' : '0';
+            a.style.transform = isOpen ? 'translateY(0)' : 'translateY(-10px)';
+        });
+    });
+
+    mMenu.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+            mMenu.classList.remove('open');
+            mBtn.classList.remove('open');
+            [...mLinks, ...mSocials].forEach(l => {
+                l.style.opacity = '0'; l.style.transform = 'translateY(-10px)'; l.style.transitionDelay = '0s';
+            });
+        });
+    });
+
+    // ── 3D TILT CARDS ─────────────────────────────────────────────────────────────
     document.querySelectorAll('.tilt').forEach(card => {
         card.addEventListener('mousemove', e => {
             const r = card.getBoundingClientRect();
@@ -971,18 +1510,32 @@
         });
     });
 
-    // ── GSAP STAGGER (for sections) ──
-    gsap.registerPlugin(ScrollTrigger);
-
-    document.querySelectorAll('section').forEach(sec => {
-        const children = sec.querySelectorAll('.glass-panel');
-        if (!children.length) return;
-        gsap.from(children, {
-            scrollTrigger: { trigger: sec, start: 'top 80%', toggleActions: 'play none none none' },
-            y: 20, opacity: 0, duration: 0.7, stagger: 0.09, ease: 'power3.out',
-            clearProps: 'all'
-        });
+    // ── CONTACT FORM HANDLER ───────────────────────────────────────────────────────
+    document.getElementById('send-msg-btn').addEventListener('click', () => {
+        const name = document.getElementById('contact-name').value.trim();
+        const msg  = document.getElementById('contact-msg').value.trim();
+        if (!name) { showToast('Isi nama kamu dulu! 👀', 'error'); return; }
+        if (!msg)  { showToast('Pesannya kosong nih! ✍️', 'error'); return; }
+        const text = `Halo Rizqi! Saya *${name}*.\n\n${msg}`;
+        const url  = `https://t.me/rallyriz?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+        showToast(lang === 'id' ? 'Membuka Telegram... 🚀' : 'Opening Telegram... 🚀', 'success');
+        document.getElementById('contact-name').value = '';
+        document.getElementById('contact-msg').value  = '';
     });
+
+    // ── GSAP SCROLL ANIMATIONS ────────────────────────────────────────────────────
+    if (window.gsap && window.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+        document.querySelectorAll('section').forEach(sec => {
+            const children = sec.querySelectorAll('.glass-panel');
+            if (!children.length) return;
+            gsap.from(children, {
+                scrollTrigger: { trigger: sec, start: 'top 80%', toggleActions: 'play none none none' },
+                y: 20, opacity: 0, duration: 0.7, stagger: 0.09, ease: 'power3.out', clearProps: 'all'
+            });
+        });
+    }
     </script>
 </body>
 </html>
